@@ -1,4 +1,4 @@
-package de.mseprojekt.aunoa
+package de.mseprojekt.aunoa.feature_app.presentation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import dagger.hilt.android.AndroidEntryPoint
 import de.mseprojekt.aunoa.feature_app.presentation.rule_details.RuleDetailsScreen
 import de.mseprojekt.aunoa.feature_app.presentation.actvity.ActivityScreen
 import de.mseprojekt.aunoa.feature_app.presentation.add_rule.AddRuleScreen
@@ -16,6 +17,7 @@ import de.mseprojekt.aunoa.feature_app.presentation.rules_hub.RulesHubScreen
 import de.mseprojekt.aunoa.feature_app.presentation.util.Screen
 import de.mseprojekt.aunoa.ui.theme.AunoaTheme
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

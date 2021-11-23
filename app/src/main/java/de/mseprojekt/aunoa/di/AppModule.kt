@@ -11,6 +11,8 @@ import de.mseprojekt.aunoa.feature_app.data.repository.ActivityRepositoryImpl
 import de.mseprojekt.aunoa.feature_app.data.repository.RuleRepositoryImpl
 import de.mseprojekt.aunoa.feature_app.domain.repository.ActivityRepository
 import de.mseprojekt.aunoa.feature_app.domain.repository.RuleRepository
+import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.ActivityUseCases
+import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.GetActivities
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.GetRule
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.RuleUseCases
 import javax.inject.Singleton
@@ -45,6 +47,13 @@ object AppModule {
     fun provideRuleUseCases(repository: RuleRepository): RuleUseCases {
         return RuleUseCases(
             getRule = GetRule(repository),
+        )
+    }
+    @Provides
+    @Singleton
+    fun provideActivityUseCases(repository: ActivityRepository): ActivityUseCases {
+        return ActivityUseCases(
+            getActivities = GetActivities(repository),
         )
     }
 }

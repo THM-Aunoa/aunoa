@@ -10,7 +10,8 @@ import de.mseprojekt.aunoa.feature_app.domain.model.Rule
 
 @Database(
     entities = [Rule::class, Activity::class],
-    version = 1
+    version = 1,
+    exportSchema = false
 )
 
 @TypeConverters(Converters::class)

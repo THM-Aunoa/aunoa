@@ -1,5 +1,6 @@
 package de.mseprojekt.aunoa.feature_app.presentation.actvity
 
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -8,4 +9,6 @@ import androidx.navigation.NavController
 fun ActivityScreen(
     navController: NavController,
     viewModel: ActivityViewModel = hiltViewModel()
-) {}
+) {
+    Text(text = "Hello")
+}
