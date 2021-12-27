@@ -11,7 +11,7 @@ class BootStart : BroadcastReceiver() {
         val action = arg1?.action
 
         if (action != null) {
-            if (Intent.ACTION_BOOT_COMPLETED == action){
+            if (Intent.ACTION_BOOT_COMPLETED == action || Intent.ACTION_LOCKED_BOOT_COMPLETED == action){
                 startService(context)
             }
         }
