@@ -15,6 +15,7 @@ import de.mseprojekt.aunoa.feature_app.presentation.add_rule.AddRuleScreen
 import de.mseprojekt.aunoa.feature_app.presentation.my_rules.MyRulesScreen
 import de.mseprojekt.aunoa.feature_app.presentation.rules_hub.RulesHubScreen
 import de.mseprojekt.aunoa.feature_app.presentation.util.Screen
+import de.mseprojekt.aunoa.other.foregroundStartService
 import de.mseprojekt.aunoa.ui.theme.AunoaTheme
 
 @AndroidEntryPoint
@@ -23,6 +24,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             AunoaTheme {
+                foregroundStartService("Start")
                 val navController = rememberNavController()
                 NavHost(
                     navController = navController,
