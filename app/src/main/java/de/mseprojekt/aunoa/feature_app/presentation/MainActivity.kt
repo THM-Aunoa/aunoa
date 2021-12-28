@@ -1,6 +1,12 @@
 package de.mseprojekt.aunoa.feature_app.presentation
 
+import android.Manifest
+import android.app.NotificationManager
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.navigation.NavType
@@ -9,6 +15,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import dagger.hilt.android.AndroidEntryPoint
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import de.mseprojekt.aunoa.feature_app.presentation.rule_details.RuleDetailsScreen
 import de.mseprojekt.aunoa.feature_app.presentation.actvity.ActivityScreen
 import de.mseprojekt.aunoa.feature_app.presentation.add_rule.AddRuleScreen
@@ -18,20 +26,41 @@ import de.mseprojekt.aunoa.feature_app.presentation.util.Screen
 import de.mseprojekt.aunoa.other.foregroundStartService
 import de.mseprojekt.aunoa.ui.theme.AunoaTheme
 
+
+@ExperimentalPermissionsApi
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             AunoaTheme {
-                foregroundStartService("Start")
+                val permissionsState = rememberMultiplePermissionsState(
+                    permissions = listOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                        Manifest.permission.ACCESS_NOTIFICATION_POLICY
+                    )
+                )
+                if (permissionsState.allPermissionsGranted) {
+                    Log.d("Aunoa", "all permissions granted")
+                    val manager =
+                        getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                    if (!manager.isNotificationPolicyAccessGranted) {
+                        val intent = Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
+                        startActivity(intent)
+                    }
+                    foregroundStartService("Start")
+                }
                 val navController = rememberNavController()
                 NavHost(
                     navController = navController,
                     startDestination = Screen.ActivityScreen.route
                 ) {
                     composable(route = Screen.ActivityScreen.route) {
-                        ActivityScreen(navController = navController)
+                        ActivityScreen(
+                            navController = navController,
+                            permissionsState = permissionsState
+                        )
                     }
                     composable(
                         route = Screen.RulesDetailsScreen.route +

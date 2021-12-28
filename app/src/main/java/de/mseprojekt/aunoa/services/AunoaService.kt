@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.location.Location
 import android.os.IBinder
 import android.util.Log
 import android.widget.Toast
@@ -13,6 +14,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import android.media.AudioManager
+import android.provider.Settings
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.tasks.CancellationTokenSource
+import com.google.android.gms.tasks.Task
+import java.time.LocalDateTime
+
 
 const val INTENT_COMMAND = "Command"
 const val INTENT_COMMAND_EXIT = "Exit"
@@ -27,8 +37,14 @@ private const val CODE_ACHIEVE_INTENT = 3
 
 class AunoaService : Service() {
 
+    private val fusedLocationClient: FusedLocationProviderClient by lazy {
+        LocationServices.getFusedLocationProviderClient(this)
+    }
+
+    private var cancellationTokenSource = CancellationTokenSource()
+
     private var isrunning = false
-    private var delay : Long = 60000L // 60000L = 1 minute
+    private var delay : Long = 10000L // 60000L = 1 minute
 
     override fun onBind(p0: Intent?): IBinder? = null
 
@@ -57,11 +73,45 @@ class AunoaService : Service() {
         stopSelf()
     }
 
+    @SuppressLint("MissingPermission")
+    private fun requestCurrentLocation(): Task<Location> {
+        return fusedLocationClient.getCurrentLocation(
+            LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY,
+            cancellationTokenSource.token
+        )
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun requestLastKnownLocation(): Task<Location> {
+        return fusedLocationClient.getCurrentLocation(
+            LocationRequest.PRIORITY_NO_POWER,
+            cancellationTokenSource.token
+        )
+    }
+
     private fun runService() {
         CoroutineScope(Dispatchers.Main).launch {
+            var mute = false
+            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
             while (isrunning) {
                 Log.d("Running", "yes")
                 // Code which runs every minute in background
+                if (manager.isNotificationPolicyAccessGranted) {
+                    if (mute) {
+                        audioManager.ringerMode = AudioManager.RINGER_MODE_SILENT
+                        mute = false
+                    } else {
+                        audioManager.ringerMode = AudioManager.RINGER_MODE_NORMAL
+                        mute = true
+                    }
+                }
+                requestCurrentLocation().addOnCompleteListener { task: Task<Location> ->
+                    if (task.isSuccessful && task.result != null) {
+                        Log.d("Running", task.result.latitude.toString())
+                        Log.d("Running", task.result.longitude.toString())
+                    }
+                }
                 delay(delay)
             }
         }
