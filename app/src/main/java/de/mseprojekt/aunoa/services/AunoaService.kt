@@ -15,13 +15,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import android.media.AudioManager
-import android.provider.Settings
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.Task
-import java.time.LocalDateTime
+import dagger.hilt.android.AndroidEntryPoint
+import de.mseprojekt.aunoa.feature_app.domain.model.Rule
+import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.RuleUseCases
+import javax.inject.Inject
 
 
 const val INTENT_COMMAND = "Command"
@@ -35,14 +37,17 @@ private const val CODE_FOREGROUND_SERVICE = 1
 private const val CODE_REPLY_INTENT = 2
 private const val CODE_ACHIEVE_INTENT = 3
 
-class AunoaService : Service() {
 
+
+@AndroidEntryPoint
+class AunoaService: Service() {
     private val fusedLocationClient: FusedLocationProviderClient by lazy {
         LocationServices.getFusedLocationProviderClient(this)
     }
+    @Inject
+    lateinit var ruleUseCases: RuleUseCases
 
     private var cancellationTokenSource = CancellationTokenSource()
-
     private var isrunning = false
     private var delay : Long = 10000L // 60000L = 1 minute
 
@@ -91,6 +96,12 @@ class AunoaService : Service() {
 
     private fun runService() {
         CoroutineScope(Dispatchers.Main).launch {
+            ruleUseCases.insertRule(
+                Rule(
+                    RuleId = 1,
+                    title = "Test123"
+                )
+            )
             var mute = false
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -105,6 +116,11 @@ class AunoaService : Service() {
                         audioManager.ringerMode = AudioManager.RINGER_MODE_NORMAL
                         mute = true
                     }
+                }
+                Log.d("DB", "T1")
+                val rule = ruleUseCases.getRule(1)
+                if (rule != null) {
+                    Log.d("Running", rule.title)
                 }
                 requestCurrentLocation().addOnCompleteListener { task: Task<Location> ->
                     if (task.isSuccessful && task.result != null) {

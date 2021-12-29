@@ -14,6 +14,8 @@ import de.mseprojekt.aunoa.feature_app.domain.repository.RuleRepository
 import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.ActivityUseCases
 import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.GetActivities
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.GetRule
+import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.GetRules
+import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.InsertRule
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.RuleUseCases
 import javax.inject.Singleton
 
@@ -47,6 +49,8 @@ object AppModule {
     fun provideRuleUseCases(repository: RuleRepository): RuleUseCases {
         return RuleUseCases(
             getRule = GetRule(repository),
+            getRules = GetRules(repository),
+            insertRule = InsertRule(repository)
         )
     }
     @Provides
