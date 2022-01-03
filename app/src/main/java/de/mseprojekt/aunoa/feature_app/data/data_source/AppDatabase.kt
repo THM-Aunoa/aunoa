@@ -4,12 +4,14 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import de.mseprojekt.aunoa.feature_app.data.util.Converters
-import de.mseprojekt.aunoa.feature_app.domain.model.Activity
+import de.mseprojekt.aunoa.feature_app.domain.model.Act
+import de.mseprojekt.aunoa.feature_app.domain.model.Operations
 import de.mseprojekt.aunoa.feature_app.domain.model.Rule
+import de.mseprojekt.aunoa.feature_app.domain.model.Trig
 
 
 @Database(
-    entities = [Rule::class, Activity::class],
+    entities = [Rule::class, Operations::class, Act::class, Trig::class],
     version = 1,
     exportSchema = false
 )
@@ -17,7 +19,7 @@ import de.mseprojekt.aunoa.feature_app.domain.model.Rule
 @TypeConverters(Converters::class)
 abstract class AppDatabase: RoomDatabase() {
 
-    abstract val activityDao: ActivityDao
+    abstract val activityDao: OperationsDao
     abstract val ruleDao: RuleDao
 
     companion object {

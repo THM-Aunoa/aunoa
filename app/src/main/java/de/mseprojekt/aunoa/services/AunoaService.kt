@@ -21,7 +21,8 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.Task
 import dagger.hilt.android.AndroidEntryPoint
-import de.mseprojekt.aunoa.feature_app.domain.model.Rule
+import de.mseprojekt.aunoa.feature_app.domain.model.Act
+import de.mseprojekt.aunoa.feature_app.domain.model.Trig
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.RuleUseCases
 import javax.inject.Inject
 
@@ -97,10 +98,13 @@ class AunoaService: Service() {
     private fun runService() {
         CoroutineScope(Dispatchers.Main).launch {
             ruleUseCases.insertRule(
-                Rule(
-                    RuleId = 1,
-                    title = "Test123"
-                )
+                Act(
+                    actionType = "Test458"
+                ),
+                Trig(
+                    triggerType = "Hallo478"
+                ),
+                title = "Test123"
             )
             var mute = false
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -120,7 +124,9 @@ class AunoaService: Service() {
                 Log.d("DB", "T1")
                 val rule = ruleUseCases.getRule(1)
                 if (rule != null) {
-                    Log.d("Running", rule.title)
+                    Log.d("Running", rule.rule.title)
+                    Log.d("Running", rule.content.act.actionType)
+                    Log.d("Running", rule.content.trig.triggerType)
                 }
                 requestCurrentLocation().addOnCompleteListener { task: Task<Location> ->
                     if (task.isSuccessful && task.result != null) {

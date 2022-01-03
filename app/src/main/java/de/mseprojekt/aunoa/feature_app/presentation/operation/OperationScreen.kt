@@ -1,4 +1,4 @@
-package de.mseprojekt.aunoa.feature_app.presentation.actvity
+package de.mseprojekt.aunoa.feature_app.presentation.operation
 
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -15,7 +15,7 @@ import com.google.accompanist.permissions.MultiplePermissionsState
 @Composable
 fun ActivityScreen(
     navController: NavController,
-    viewModel: ActivityViewModel = hiltViewModel(),
+    viewModel: OperationViewModel = hiltViewModel(),
     permissionsState: MultiplePermissionsState,
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current

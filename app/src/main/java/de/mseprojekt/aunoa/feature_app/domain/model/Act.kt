@@ -4,10 +4,11 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity
-data class VolumeAction(
-    override val name : String = "Volume Change",
-    val volume: Int,
-
+data class Act (
     @PrimaryKey
-    override val actionId: Int
-): Action()
+    val ruleId: Int? = null,
+
+    val actionType: String,
+
+    val volume: Int? = null,
+)

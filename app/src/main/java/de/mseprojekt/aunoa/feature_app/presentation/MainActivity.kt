@@ -18,7 +18,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import de.mseprojekt.aunoa.feature_app.presentation.rule_details.RuleDetailsScreen
-import de.mseprojekt.aunoa.feature_app.presentation.actvity.ActivityScreen
+import de.mseprojekt.aunoa.feature_app.presentation.operation.ActivityScreen
 import de.mseprojekt.aunoa.feature_app.presentation.add_rule.AddRuleScreen
 import de.mseprojekt.aunoa.feature_app.presentation.my_rules.MyRulesScreen
 import de.mseprojekt.aunoa.feature_app.presentation.rules_hub.RulesHubScreen

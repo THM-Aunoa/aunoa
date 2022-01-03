@@ -5,11 +5,11 @@ import androidx.room.PrimaryKey
 import java.util.*
 
 @Entity
-data class Activity(
+data class Operations(
     @PrimaryKey
-    val ActivityId: Int? = null,
+    val operationId: Int? = null,
 
     val date: Long,
-    val RuleId: Int,
+    val ruleId: Int,
     val status: StatusType
 )

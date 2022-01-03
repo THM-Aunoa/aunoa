@@ -6,7 +6,6 @@ import androidx.room.PrimaryKey
 @Entity
 data class Rule(
     @PrimaryKey
-    val RuleId: Int? = null,
-
+    val ruleId: Int? = null,
     val title: String,
 )

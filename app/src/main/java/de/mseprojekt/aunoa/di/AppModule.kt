@@ -7,12 +7,12 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import de.mseprojekt.aunoa.feature_app.data.data_source.AppDatabase
-import de.mseprojekt.aunoa.feature_app.data.repository.ActivityRepositoryImpl
+import de.mseprojekt.aunoa.feature_app.data.repository.OperationsRepositoryImpl
 import de.mseprojekt.aunoa.feature_app.data.repository.RuleRepositoryImpl
-import de.mseprojekt.aunoa.feature_app.domain.repository.ActivityRepository
+import de.mseprojekt.aunoa.feature_app.domain.repository.OperationsRepository
 import de.mseprojekt.aunoa.feature_app.domain.repository.RuleRepository
-import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.ActivityUseCases
-import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.GetActivities
+import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.OperationsUseCases
+import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.GetOperations
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.GetRule
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.GetRules
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.InsertRule
@@ -40,8 +40,8 @@ object AppModule {
     }
     @Provides
     @Singleton
-    fun provideActivityRepository(db: AppDatabase): ActivityRepository {
-        return ActivityRepositoryImpl(db.activityDao)
+    fun provideActivityRepository(db: AppDatabase): OperationsRepository {
+        return OperationsRepositoryImpl(db.activityDao)
     }
 
     @Provides
@@ -55,9 +55,9 @@ object AppModule {
     }
     @Provides
     @Singleton
-    fun provideActivityUseCases(repository: ActivityRepository): ActivityUseCases {
-        return ActivityUseCases(
-            getActivities = GetActivities(repository),
+    fun provideActivityUseCases(repository: OperationsRepository): OperationsUseCases {
+        return OperationsUseCases(
+            getOperation = GetOperations(repository),
         )
     }
 }
