@@ -2,7 +2,7 @@ package de.mseprojekt.aunoa.feature_app.data.data_source.relations
 
 import androidx.room.Embedded
 import androidx.room.Relation
-import de.mseprojekt.aunoa.feature_app.domain.model.Operations
+import de.mseprojekt.aunoa.feature_app.domain.model.Operation
 import de.mseprojekt.aunoa.feature_app.domain.model.Rule
 
 data class RuleWithOperations(
@@ -11,5 +11,5 @@ data class RuleWithOperations(
         parentColumn = "ruleId",
         entityColumn = "ruleId"
     )
-    val activities: List<Operations>
+    val activities: List<Operation>
     )

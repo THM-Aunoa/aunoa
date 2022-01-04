@@ -8,4 +8,5 @@ data class Rule(
     @PrimaryKey
     val ruleId: Int? = null,
     val title: String,
+    val priority: Int
 )

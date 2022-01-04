@@ -104,7 +104,8 @@ class AunoaService: Service() {
                 Trig(
                     triggerType = "Hallo478"
                 ),
-                title = "Test123"
+                title = "Test123",
+                priority = 10,
             )
             var mute = false
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

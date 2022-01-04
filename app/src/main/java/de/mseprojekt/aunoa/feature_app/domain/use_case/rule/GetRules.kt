@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 class GetRules(
     private val repository: RuleRepository
 ) {
-    suspend operator fun invoke(): Flow<List<RuleWithActAndTrig>> {
+    operator fun invoke(): Flow<List<RuleWithActAndTrig>> {
         return repository.getRules()
     }
 }

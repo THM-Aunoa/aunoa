@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 import java.util.*
 
 @Entity
-data class Operations(
+data class Operation(
     @PrimaryKey
     val operationId: Int? = null,
 

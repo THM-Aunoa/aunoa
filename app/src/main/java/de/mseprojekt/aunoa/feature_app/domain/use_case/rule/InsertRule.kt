@@ -8,13 +8,14 @@ import de.mseprojekt.aunoa.feature_app.domain.repository.RuleRepository
 class InsertRule(
     private val repository: RuleRepository
 ) {
-    suspend operator fun invoke(action: Act, trigger: Trig, title: String) {
+    suspend operator fun invoke(action: Act, trigger: Trig, title: String, priority: Int) {
         var maxId = repository.getMaxIdFromRules()
         if (maxId == null)
             maxId = 0
         repository.insertRule(Rule(
             ruleId = maxId + 1,
-            title = title
+            title = title,
+            priority = priority
             )
         )
         repository.insertAction(action.copy(
