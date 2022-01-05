@@ -10,5 +10,6 @@ data class Rule(
     val title: String,
     val description: String,
     val priority: Int,
-    val active: Boolean
+    val active: Boolean,
+    val enabled: Boolean
 )

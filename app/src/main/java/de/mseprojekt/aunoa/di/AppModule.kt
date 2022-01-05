@@ -9,13 +9,18 @@ import dagger.hilt.components.SingletonComponent
 import de.mseprojekt.aunoa.feature_app.data.data_source.AppDatabase
 import de.mseprojekt.aunoa.feature_app.data.repository.OperationRepositoryImpl
 import de.mseprojekt.aunoa.feature_app.data.repository.RuleRepositoryImpl
+import de.mseprojekt.aunoa.feature_app.data.repository.StateRepositoryImpl
 import de.mseprojekt.aunoa.feature_app.domain.repository.OperationRepository
 import de.mseprojekt.aunoa.feature_app.domain.repository.RuleRepository
+import de.mseprojekt.aunoa.feature_app.domain.repository.StateRepository
 import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.OperationsUseCases
 import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.GetOperations
 import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.GetOperationsById
 import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.InsertOperation
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.*
+import de.mseprojekt.aunoa.feature_app.domain.use_case.state.GetCurrentState
+import de.mseprojekt.aunoa.feature_app.domain.use_case.state.InsertState
+import de.mseprojekt.aunoa.feature_app.domain.use_case.state.StateUseCases
 import javax.inject.Singleton
 
 @Module
@@ -39,9 +44,15 @@ object AppModule {
     }
     @Provides
     @Singleton
-    fun provideActivityRepository(db: AppDatabase): OperationRepository {
-        return OperationRepositoryImpl(db.activityDao)
+    fun provideOperationRepository(db: AppDatabase): OperationRepository {
+        return OperationRepositoryImpl(db.operationDao)
     }
+    @Provides
+    @Singleton
+    fun provideStateRepository(db: AppDatabase): StateRepository{
+        return StateRepositoryImpl(db.stateDao)
+    }
+
 
     @Provides
     @Singleton
@@ -55,11 +66,20 @@ object AppModule {
     }
     @Provides
     @Singleton
-    fun provideActivityUseCases(repository: OperationRepository): OperationsUseCases {
+    fun provideOperationUseCases(repository: OperationRepository): OperationsUseCases {
         return OperationsUseCases(
             getOperation = GetOperations(repository),
             getOperationsById = GetOperationsById(repository),
             insertOperation = InsertOperation(repository)
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideStateUseCases(repository: StateRepository) : StateUseCases{
+        return StateUseCases(
+            getCurrentState = GetCurrentState(repository),
+            insertState = InsertState(repository)
         )
     }
 }

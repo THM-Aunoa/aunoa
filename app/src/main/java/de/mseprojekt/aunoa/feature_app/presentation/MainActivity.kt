@@ -17,6 +17,8 @@ import androidx.navigation.navArgument
 import dagger.hilt.android.AndroidEntryPoint
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.RuleUseCases
+import de.mseprojekt.aunoa.feature_app.domain.use_case.state.StateUseCases
 import de.mseprojekt.aunoa.feature_app.presentation.rule_details.RuleDetailsScreen
 import de.mseprojekt.aunoa.feature_app.presentation.operation.ActivityScreen
 import de.mseprojekt.aunoa.feature_app.presentation.add_rule.AddRuleScreen
@@ -25,11 +27,19 @@ import de.mseprojekt.aunoa.feature_app.presentation.rules_hub.RulesHubScreen
 import de.mseprojekt.aunoa.feature_app.presentation.util.Screen
 import de.mseprojekt.aunoa.other.foregroundStartService
 import de.mseprojekt.aunoa.ui.theme.AunoaTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 
 @ExperimentalPermissionsApi
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(
+) {
+    @Inject
+    lateinit var stateUseCases: StateUseCases
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -49,7 +59,11 @@ class MainActivity : ComponentActivity() {
                         val intent = Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
                         startActivity(intent)
                     }
-                    foregroundStartService("Start")
+                    CoroutineScope(Dispatchers.Main).launch {
+                        if (stateUseCases.getCurrentState()) {
+                            foregroundStartService("Start")
+                        }
+                    }
                 }
                 val navController = rememberNavController()
                 NavHost(

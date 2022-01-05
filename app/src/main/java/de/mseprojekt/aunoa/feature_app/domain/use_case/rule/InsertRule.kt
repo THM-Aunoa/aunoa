@@ -23,7 +23,8 @@ class InsertRule(
             title = title,
             priority = priority,
             description = "test",
-            active = true
+            active = true,
+            enabled = true
             )
         )
         val actionString = gson.toJson(action)
