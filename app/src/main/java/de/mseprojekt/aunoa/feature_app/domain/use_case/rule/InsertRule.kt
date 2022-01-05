@@ -1,15 +1,21 @@
 package de.mseprojekt.aunoa.feature_app.domain.use_case.rule
 
+import android.util.Log
+import com.google.gson.Gson
 import de.mseprojekt.aunoa.feature_app.domain.model.Act
 import de.mseprojekt.aunoa.feature_app.domain.model.Rule
 import de.mseprojekt.aunoa.feature_app.domain.model.Trig
+import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.ActionObject
+import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TriggerObject
 import de.mseprojekt.aunoa.feature_app.domain.repository.RuleRepository
+import java.util.*
 
 class InsertRule(
     private val repository: RuleRepository
 ) {
-    suspend operator fun invoke(action: Act, trigger: Trig, title: String, priority: Int) {
+    suspend operator fun invoke(action: ActionObject, actionObjectName: String, trigger: TriggerObject,triggerObjectName: String, title: String, priority: Int) {
         var maxId = repository.getMaxIdFromRules()
+        val gson = Gson()
         if (maxId == null)
             maxId = 0
         repository.insertRule(Rule(
@@ -20,11 +26,23 @@ class InsertRule(
             active = true
             )
         )
-        repository.insertAction(action.copy(
-            ruleId = maxId + 1
-        ))
-        repository.insertTrigger(trigger.copy(
-            ruleId = maxId + 1
-        ))
+        val actionString = gson.toJson(action)
+        Log.d("json", actionString)
+        repository.insertAction(
+            Act(
+                ruleId = maxId + 1,
+                actionType = actionObjectName,
+                actionObject = actionString
+            )
+        )
+        val triggerString = gson.toJson(trigger)
+        Log.d("json", triggerString)
+        repository.insertTrigger(
+            Trig(
+                ruleId = maxId + 1,
+                triggerType = triggerObjectName,
+                triggerObject = triggerString
+            )
+        )
     }
 }

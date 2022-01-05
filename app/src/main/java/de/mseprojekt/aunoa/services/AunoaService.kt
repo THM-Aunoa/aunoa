@@ -20,9 +20,14 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.Task
+import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
 import de.mseprojekt.aunoa.feature_app.domain.model.Act
 import de.mseprojekt.aunoa.feature_app.domain.model.Trig
+import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.ActionObject
+import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.VolumeAction
+import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TimeTrigger
+import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TriggerObject
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.RuleUseCases
 import javax.inject.Inject
 
@@ -97,13 +102,19 @@ class AunoaService: Service() {
 
     private fun runService() {
         CoroutineScope(Dispatchers.Main).launch {
+            val gson = Gson()
+            val xx: TriggerObject = TimeTrigger(
+                endTime = 15,
+                startTime = 20
+            )
+            val yy: ActionObject = VolumeAction(
+                volume = 1
+            )
             ruleUseCases.insertRule(
-                Act(
-                    actionType = "Test458"
-                ),
-                Trig(
-                    triggerType = "Hallo478"
-                ),
+                trigger = xx,
+                action = yy,
+                triggerObjectName = "TimeTrigger",
+                actionObjectName = "VolumeAction",
                 title = "Test123",
                 priority = 10,
             )
@@ -128,6 +139,12 @@ class AunoaService: Service() {
                     Log.d("Running", rule.rule.title)
                     Log.d("Running", rule.content.act.actionType)
                     Log.d("Running", rule.content.trig.triggerType)
+                    when(rule.content.act.actionType) {
+                        "VolumeAction" ->  {
+                            val volumeAction = gson.fromJson(rule.content.act.actionObject, VolumeAction::class.java)
+                            Log.d("Running", volumeAction.volume.toString())
+                        }
+                    }
                 }
                 requestCurrentLocation().addOnCompleteListener { task: Task<Location> ->
                     if (task.isSuccessful && task.result != null) {

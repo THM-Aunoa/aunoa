@@ -9,6 +9,5 @@ data class Act (
     val ruleId: Int? = null,
 
     val actionType: String,
-
-    val volume: Int? = null,
+    val actionObject: String
 )
