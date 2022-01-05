@@ -22,13 +22,12 @@ import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.Task
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
-import de.mseprojekt.aunoa.feature_app.domain.model.Act
-import de.mseprojekt.aunoa.feature_app.domain.model.Trig
 import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.ActionObject
 import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.VolumeAction
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TimeTrigger
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TriggerObject
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.RuleUseCases
+import java.time.LocalDate
 import javax.inject.Inject
 
 
@@ -105,7 +104,9 @@ class AunoaService: Service() {
             val gson = Gson()
             val xx: TriggerObject = TimeTrigger(
                 endTime = 15,
-                startTime = 20
+                startTime = 20,
+                endWeekday = LocalDate.now().dayOfWeek,
+                beginWeekday = LocalDate.now().dayOfWeek
             )
             val yy: ActionObject = VolumeAction(
                 volume = 1
