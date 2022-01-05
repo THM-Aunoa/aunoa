@@ -2,6 +2,7 @@ package de.mseprojekt.aunoa.feature_app.data.data_source
 
 import androidx.room.*
 import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithActAndTrig
+import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithTags
 import de.mseprojekt.aunoa.feature_app.domain.model.Act
 import de.mseprojekt.aunoa.feature_app.domain.model.Rule
 import de.mseprojekt.aunoa.feature_app.domain.model.Trig
@@ -15,7 +16,15 @@ interface RuleDao {
 
     @Transaction
     @Query("SELECT * FROM rule")
+    fun getRulesWithTags(): Flow<List<RuleWithTags>>
+
+    @Transaction
+    @Query("SELECT * FROM rule")
     fun getRules(): Flow<List<RuleWithActAndTrig>>
+
+    @Transaction
+    @Query("SELECT * FROM rule")
+    fun getRulesWithoutFlow(): List<RuleWithActAndTrig>
 
     @Transaction
     @Query("SELECT * FROM rule WHERE RuleId = :id")

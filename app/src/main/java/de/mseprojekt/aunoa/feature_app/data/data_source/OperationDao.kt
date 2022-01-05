@@ -8,10 +8,10 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface OperationDao {
 
+    @Transaction
     @Query("SELECT * FROM rule")
     fun getOperations(): Flow<List<RuleWithOperations>>
 
-    @Transaction
     @Query("SELECT * FROM operation WHERE ruleId = :id")
     suspend fun getOperationsById(id: Int): List<Operation>
 

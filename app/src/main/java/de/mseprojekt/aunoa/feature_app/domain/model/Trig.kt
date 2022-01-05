@@ -12,6 +12,8 @@ data class Trig(
 
     val triggerType: String,
 
+
+
     val startTime : Long? = null,
     val endTime : Long? = null,
 

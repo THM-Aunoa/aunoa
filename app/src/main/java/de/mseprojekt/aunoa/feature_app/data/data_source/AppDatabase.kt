@@ -4,14 +4,11 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import de.mseprojekt.aunoa.feature_app.data.util.Converters
-import de.mseprojekt.aunoa.feature_app.domain.model.Act
-import de.mseprojekt.aunoa.feature_app.domain.model.Operation
-import de.mseprojekt.aunoa.feature_app.domain.model.Rule
-import de.mseprojekt.aunoa.feature_app.domain.model.Trig
+import de.mseprojekt.aunoa.feature_app.domain.model.*
 
 
 @Database(
-    entities = [Rule::class, Operation::class, Act::class, Trig::class],
+    entities = [Rule::class, Operation::class, Act::class, Trig::class, Tag::class, RuleTagCrossRef::class],
     version = 1,
     exportSchema = false
 )

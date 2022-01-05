@@ -15,7 +15,9 @@ class InsertRule(
         repository.insertRule(Rule(
             ruleId = maxId + 1,
             title = title,
-            priority = priority
+            priority = priority,
+            description = "test",
+            active = true
             )
         )
         repository.insertAction(action.copy(

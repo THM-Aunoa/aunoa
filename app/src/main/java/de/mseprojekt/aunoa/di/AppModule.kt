@@ -15,10 +15,7 @@ import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.OperationsUseCas
 import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.GetOperations
 import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.GetOperationsById
 import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.InsertOperation
-import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.GetRule
-import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.GetRules
-import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.InsertRule
-import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.RuleUseCases
+import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.*
 import javax.inject.Singleton
 
 @Module
@@ -52,6 +49,7 @@ object AppModule {
         return RuleUseCases(
             getRule = GetRule(repository),
             getRules = GetRules(repository),
+            getRulesWithTags = GetRulesWithTags(repository),
             insertRule = InsertRule(repository)
         )
     }

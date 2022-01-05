@@ -3,5 +3,6 @@ package de.mseprojekt.aunoa.feature_app.domain.use_case.rule
 data class RuleUseCases(
     val getRule: GetRule,
     val getRules: GetRules,
-    val insertRule: InsertRule
+    val insertRule: InsertRule,
+    val getRulesWithTags: GetRulesWithTags
 )
