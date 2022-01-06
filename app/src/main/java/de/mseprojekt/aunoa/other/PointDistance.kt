@@ -9,6 +9,7 @@ fun distanceBetweenTwoPoints(lat1: Double, lon1: Double, lat2: Double, lon2: Dou
     dist = rad2deg(dist)
     dist *= 60 * 1.1515
     dist *= 1.609344
+    dist *= 1000
     return dist
 }
 

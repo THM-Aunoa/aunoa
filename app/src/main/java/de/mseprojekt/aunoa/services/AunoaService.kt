@@ -26,11 +26,18 @@ import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithActAnd
 import de.mseprojekt.aunoa.feature_app.domain.model.Rule
 import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.ActionObject
 import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.VolumeAction
+import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.LocationTrigger
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TimeTrigger
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TriggerObject
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.RuleUseCases
+import de.mseprojekt.aunoa.other.distanceBetweenTwoPoints
 import java.time.LocalDate
+import java.time.LocalTime
 import javax.inject.Inject
+import com.google.android.gms.tasks.Tasks
+
+
+
 
 
 const val INTENT_COMMAND = "Command"
@@ -108,13 +115,14 @@ class AunoaService: Service() {
         CoroutineScope(Dispatchers.Main).launch {
             val gson = Gson()
             var xx: TriggerObject = TimeTrigger(
-                endTime = 15,
-                startTime = 20,
+                endTime = LocalTime.now().toSecondOfDay()+120,
+                startTime = LocalTime.now().toSecondOfDay()-120,
                 endWeekday = LocalDate.now().dayOfWeek,
                 startWeekday = LocalDate.now().dayOfWeek
             )
             var yy: ActionObject = VolumeAction(
-                volume = 1
+                activateVolume = 0,
+                deactivateVolume = 2
             )
             ruleUseCases.insertRule(
                 trigger = xx,
@@ -122,38 +130,102 @@ class AunoaService: Service() {
                 triggerObjectName = "TimeTrigger",
                 actionObjectName = "VolumeAction",
                 title = "Test123",
+                description = "Test123",
                 priority = 10,
             )
-            xx = TimeTrigger(
-                endTime = 18,
-                startTime = 20,
-                endWeekday = LocalDate.now().dayOfWeek,
-                startWeekday = LocalDate.now().dayOfWeek
-            )
-            yy = VolumeAction(
-                volume = 3
-            )
-            ruleUseCases.insertRule(
-                trigger = xx,
-                action = yy,
-                triggerObjectName = "TimeTrigger",
-                actionObjectName = "VolumeAction",
-                title = "Test123",
-                priority = 5,
-            )
-            var mute = false
-            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
             updateRuleList()
             Log.d("a", rules.toString())
             while (isrunning) {
-
+                for (ruleCategories in rules){
+                    for(rule in ruleCategories){
+                        if (rule.rule.enabled){
+                            if (rule.rule.active){
+                                val result = testTrigger(rule.content.trig.triggerType, rule.content.trig.triggerObject,gson, true)
+                                if (result){
+                                    Log.d("Action", "Action will be performed")
+                                    performAction(rule.content.act.actionType, rule.content.act.actionObject,gson, true)
+                                } else {
+                                    break
+                                }
+                            }else{
+                                val result = testTrigger(rule.content.trig.triggerType, rule.content.trig.triggerObject,gson)
+                                if (result){
+                                    Log.d("Action", "Action will be performed")
+                                    performAction(rule.content.act.actionType, rule.content.act.actionObject,gson)
+                                    break
+                                }
+                            }
+                        }
+                    }
+                }
                 delay(delay)
             }
         }
     }
 
+    private fun testTrigger(triggerType: String, triggerString: String, gson: Gson, reverse: Boolean = false): Boolean{
+        when(triggerType){
+            "TimeTrigger" -> {
+                val timeTrigger = gson.fromJson(triggerString, TimeTrigger::class.java)
+                val weekday = if (reverse) timeTrigger.endWeekday else timeTrigger.startWeekday
+                if (weekday == LocalDate.now().dayOfWeek){
+                    val time = if (reverse) timeTrigger.endTime else timeTrigger.startTime
+                    if (LocalTime.now().toSecondOfDay() > time) {
+                        return true
+                    }
+                }
+                return false
+            }
+            "LocationTrigger" -> {
+                val locationTrigger = gson.fromJson(triggerString, LocationTrigger::class.java)
+                val task = requestCurrentLocation()
+                val result = Tasks.await(task)
+                return if (result != null) {
+                    Log.d("Cord Received", result.latitude.toString())
+                    Log.d("Cord Received", result.longitude.toString())
+                    val distance = distanceBetweenTwoPoints(
+                        result.latitude,
+                        result.longitude,
+                        locationTrigger.latitude,
+                        locationTrigger.longitude
+                    )
+                    if (reverse) {
+                        distance > locationTrigger.radius
+                    } else {
+                        locationTrigger.radius >= distance
+                    }
+                } else {
+                    false
+                }
+            }
+            else -> {
+                Log.d("Database-Error", "Unsupported Triggered Type in Database")
+                return false
+            }
+        }
+    }
+
+
+    private fun performAction(actionType: String, actionString: String,gson: Gson, reverse: Boolean = false){
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        when(actionType){
+            "VolumeAction" -> {
+                if (manager.isNotificationPolicyAccessGranted) {
+                    val volumeAction = gson.fromJson(actionString, VolumeAction::class.java)
+                    val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                    when (if (reverse) volumeAction.deactivateVolume else volumeAction.activateVolume) {
+                        0 -> audioManager.ringerMode = AudioManager.RINGER_MODE_SILENT
+                        1 -> audioManager.ringerMode = AudioManager.RINGER_MODE_VIBRATE
+                        2 -> audioManager.ringerMode = AudioManager.RINGER_MODE_NORMAL
+                    }
+                }
+
+            }
+        }
+    }
+
     fun updateRuleList(){
+        // Todo this block + testTrigger/action needs to be in a mutex
         val newRules = ruleUseCases.getRulesWithoutFlow()
         rules = ArrayList()
         for (i in ACTION_OBJECTS.indices){

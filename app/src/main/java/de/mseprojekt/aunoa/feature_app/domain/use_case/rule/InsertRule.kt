@@ -13,7 +13,7 @@ import java.util.*
 class InsertRule(
     private val repository: RuleRepository
 ) {
-    suspend operator fun invoke(action: ActionObject, actionObjectName: String, trigger: TriggerObject,triggerObjectName: String, title: String, priority: Int) {
+    suspend operator fun invoke(action: ActionObject, actionObjectName: String, trigger: TriggerObject,triggerObjectName: String, title: String, description: String, priority: Int) {
         var maxId = repository.getMaxIdFromRules()
         val gson = Gson()
         if (maxId == null)
@@ -22,8 +22,8 @@ class InsertRule(
             ruleId = maxId + 1,
             title = title,
             priority = priority,
-            description = "test",
-            active = true,
+            description = description,
+            active = false,
             enabled = true
             )
         )
