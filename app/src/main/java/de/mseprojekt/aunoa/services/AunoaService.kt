@@ -22,6 +22,8 @@ import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.Task
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
+import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithActAndTrig
+import de.mseprojekt.aunoa.feature_app.domain.model.Rule
 import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.ActionObject
 import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.VolumeAction
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TimeTrigger
@@ -42,6 +44,8 @@ private const val CODE_FOREGROUND_SERVICE = 1
 private const val CODE_REPLY_INTENT = 2
 private const val CODE_ACHIEVE_INTENT = 3
 
+private val ACTION_OBJECTS = listOf("VolumeAction")
+
 
 
 @AndroidEntryPoint
@@ -49,6 +53,7 @@ class AunoaService: Service() {
     private val fusedLocationClient: FusedLocationProviderClient by lazy {
         LocationServices.getFusedLocationProviderClient(this)
     }
+    private var rules: ArrayList<ArrayList<RuleWithActAndTrig>> = ArrayList()
     @Inject
     lateinit var ruleUseCases: RuleUseCases
 
@@ -102,13 +107,13 @@ class AunoaService: Service() {
     private fun runService() {
         CoroutineScope(Dispatchers.Main).launch {
             val gson = Gson()
-            val xx: TriggerObject = TimeTrigger(
+            var xx: TriggerObject = TimeTrigger(
                 endTime = 15,
                 startTime = 20,
                 endWeekday = LocalDate.now().dayOfWeek,
-                beginWeekday = LocalDate.now().dayOfWeek
+                startWeekday = LocalDate.now().dayOfWeek
             )
-            val yy: ActionObject = VolumeAction(
+            var yy: ActionObject = VolumeAction(
                 volume = 1
             )
             ruleUseCases.insertRule(
@@ -119,41 +124,65 @@ class AunoaService: Service() {
                 title = "Test123",
                 priority = 10,
             )
+            xx = TimeTrigger(
+                endTime = 18,
+                startTime = 20,
+                endWeekday = LocalDate.now().dayOfWeek,
+                startWeekday = LocalDate.now().dayOfWeek
+            )
+            yy = VolumeAction(
+                volume = 3
+            )
+            ruleUseCases.insertRule(
+                trigger = xx,
+                action = yy,
+                triggerObjectName = "TimeTrigger",
+                actionObjectName = "VolumeAction",
+                title = "Test123",
+                priority = 5,
+            )
             var mute = false
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            updateRuleList()
+            Log.d("a", rules.toString())
             while (isrunning) {
-                Log.d("Running", "yes")
-                // Code which runs every minute in background
-                if (manager.isNotificationPolicyAccessGranted) {
-                    if (mute) {
-                        audioManager.ringerMode = AudioManager.RINGER_MODE_SILENT
-                        mute = false
-                    } else {
-                        audioManager.ringerMode = AudioManager.RINGER_MODE_NORMAL
-                        mute = true
-                    }
-                }
-                Log.d("DB", "T1")
-                val rule = ruleUseCases.getRule(1)
-                if (rule != null) {
-                    Log.d("Running", rule.rule.title)
-                    Log.d("Running", rule.content.act.actionType)
-                    Log.d("Running", rule.content.trig.triggerType)
-                    when(rule.content.act.actionType) {
-                        "VolumeAction" ->  {
-                            val volumeAction = gson.fromJson(rule.content.act.actionObject, VolumeAction::class.java)
-                            Log.d("Running", volumeAction.volume.toString())
-                        }
-                    }
-                }
-                requestCurrentLocation().addOnCompleteListener { task: Task<Location> ->
-                    if (task.isSuccessful && task.result != null) {
-                        Log.d("Running", task.result.latitude.toString())
-                        Log.d("Running", task.result.longitude.toString())
-                    }
-                }
+
                 delay(delay)
+            }
+        }
+    }
+
+    fun updateRuleList(){
+        val newRules = ruleUseCases.getRulesWithoutFlow()
+        rules = ArrayList()
+        for (i in ACTION_OBJECTS.indices){
+            rules.add(ArrayList())
+        }
+        for (newRule in newRules) {
+            var index = -1
+            for (i in ACTION_OBJECTS.indices) {
+                if (ACTION_OBJECTS[i] == newRule.content.act.actionType){
+                    index = i
+                }
+            }
+            if (index == -1) {
+                Log.d("Database-Error", "Unsupported Action Type in Database")
+                return
+            }
+            if (rules[index].size == 0){
+                rules[index].add(newRule)
+                continue
+            }
+            if (newRule.rule.priority <= rules[index][rules[index].size-1].rule.priority){
+                rules[index].add(rules[index].size,newRule)
+                continue
+            }
+            for (i in 0 until rules[index].size){
+                if (newRule.rule.priority > rules[index][i].rule.priority){
+                    rules[index].add(i, newRule)
+                    break
+                }
             }
         }
     }

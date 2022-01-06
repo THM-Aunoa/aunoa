@@ -61,7 +61,8 @@ object AppModule {
             getRule = GetRule(repository),
             getRules = GetRules(repository),
             getRulesWithTags = GetRulesWithTags(repository),
-            insertRule = InsertRule(repository)
+            insertRule = InsertRule(repository),
+            getRulesWithoutFlow = GetRulesWithoutFlow(repository)
         )
     }
     @Provides

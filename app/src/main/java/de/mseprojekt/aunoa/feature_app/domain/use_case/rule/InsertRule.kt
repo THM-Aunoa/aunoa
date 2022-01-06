@@ -28,7 +28,6 @@ class InsertRule(
             )
         )
         val actionString = gson.toJson(action)
-        Log.d("json", actionString)
         repository.insertAction(
             Act(
                 ruleId = maxId + 1,
@@ -37,7 +36,6 @@ class InsertRule(
             )
         )
         val triggerString = gson.toJson(trigger)
-        Log.d("json", triggerString)
         repository.insertTrigger(
             Trig(
                 ruleId = maxId + 1,

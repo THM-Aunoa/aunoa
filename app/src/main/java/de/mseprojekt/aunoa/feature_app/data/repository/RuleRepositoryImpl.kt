@@ -9,6 +9,10 @@ import de.mseprojekt.aunoa.feature_app.domain.model.Rule
 import de.mseprojekt.aunoa.feature_app.domain.model.Trig
 import de.mseprojekt.aunoa.feature_app.domain.repository.RuleRepository
 import kotlinx.coroutines.flow.Flow
+import java.lang.Exception
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors
+import java.util.concurrent.Future
 
 class RuleRepositoryImpl(
     private val dao: RuleDao
@@ -28,8 +32,12 @@ class RuleRepositoryImpl(
         return dao.getRulesWithTags();
     }
 
-    override suspend fun getRulesWithoutFlow(): List<RuleWithActAndTrig> {
-        return dao.getRulesWithoutFlow();
+    override fun getRulesWithoutFlow(): List<RuleWithActAndTrig> {
+        val callable = Callable{ dao.getRulesWithoutFlow() }
+
+        val future = Executors.newSingleThreadExecutor().submit(callable)
+
+        return future!!.get()
     }
 
     override suspend fun insertRule(rule: Rule) {

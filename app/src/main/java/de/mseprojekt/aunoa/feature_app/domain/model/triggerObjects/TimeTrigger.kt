@@ -5,6 +5,6 @@ import java.time.DayOfWeek
 data class TimeTrigger(
     val startTime : Long,
     val endTime : Long,
-    val beginWeekday : DayOfWeek?,
+    val startWeekday : DayOfWeek?,
     val endWeekday: DayOfWeek?
 ): TriggerObject()
