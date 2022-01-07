@@ -51,4 +51,12 @@ class RuleRepositoryImpl(
     override suspend fun insertAction(action: Act) {
         return dao.insertAction(action)
     }
+
+    override suspend fun setActive(active: Boolean, id: Int){
+        return dao.setActive(active, id)
+    }
+
+    override suspend fun setEnabled(enabled: Boolean, id: Int){
+        return dao.setEnabled(enabled, id)
+    }
 }

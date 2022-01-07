@@ -5,5 +5,7 @@ data class RuleUseCases(
     val getRules: GetRules,
     val insertRule: InsertRule,
     val getRulesWithTags: GetRulesWithTags,
-    val getRulesWithoutFlow: GetRulesWithoutFlow
+    val getRulesWithoutFlow: GetRulesWithoutFlow,
+    val setActive: SetActive,
+    val setEnabled: SetEnabled
 )

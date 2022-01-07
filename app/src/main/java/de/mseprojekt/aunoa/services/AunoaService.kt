@@ -64,6 +64,9 @@ class AunoaService: Service() {
     @Inject
     lateinit var ruleUseCases: RuleUseCases
 
+    private var lastKnownLat: Double? = null
+    private var lastKnownLon: Double? = null
+
     private var cancellationTokenSource = CancellationTokenSource()
     private var isrunning = false
     private var delay : Long = 10000L // 60000L = 1 minute
@@ -114,6 +117,7 @@ class AunoaService: Service() {
     private fun runService() {
         CoroutineScope(Dispatchers.Main).launch {
             val gson = Gson()
+            /*
             var xx: TriggerObject = TimeTrigger(
                 endTime = LocalTime.now().toSecondOfDay()+120,
                 startTime = LocalTime.now().toSecondOfDay()-120,
@@ -133,26 +137,61 @@ class AunoaService: Service() {
                 description = "Test123",
                 priority = 10,
             )
+
+            var xx: TriggerObject = LocationTrigger(
+                latitude = 50.5871366,
+                longitude = 8.6819269,
+                radius = 500.0
+            )
+            var yy: ActionObject = VolumeAction(
+                activateVolume = 2,
+                deactivateVolume = 0
+            )
+            ruleUseCases.insertRule(
+                trigger = xx,
+                action = yy,
+                triggerObjectName = "LocationTrigger",
+                actionObjectName = "VolumeAction",
+                title = "Test123",
+                description = "Test123",
+                priority = 10,
+            )
+            */
             updateRuleList()
             Log.d("a", rules.toString())
             while (isrunning) {
+                requestCurrentLocation().addOnCompleteListener { task: Task<Location> ->
+                    if (task.isSuccessful && task.result != null) {
+                        lastKnownLat = task.result.latitude
+                        lastKnownLon = task.result.longitude
+                        Log.d("L", "location set")
+                    }
+                }
                 for (ruleCategories in rules){
                     for(rule in ruleCategories){
                         if (rule.rule.enabled){
                             if (rule.rule.active){
-                                val result = testTrigger(rule.content.trig.triggerType, rule.content.trig.triggerObject,gson, true)
-                                if (result){
-                                    Log.d("Action", "Action will be performed")
-                                    performAction(rule.content.act.actionType, rule.content.act.actionObject,gson, true)
+                                val tResult = testTrigger(rule.content.trig.triggerType, rule.content.trig.triggerObject,gson, true)
+                                if (tResult){
+                                    Log.d("Action", "Action will be performed (Deactivation)")
+                                    val aResult = performAction(rule.content.act.actionType, rule.content.act.actionObject,gson, true)
+                                    if (aResult) {
+                                        rule.rule.ruleId?.let { ruleUseCases.setActive(false, it) }
+                                        rule.rule.active = false
+                                    }
                                 } else {
                                     break
                                 }
                             }else{
-                                val result = testTrigger(rule.content.trig.triggerType, rule.content.trig.triggerObject,gson)
-                                if (result){
-                                    Log.d("Action", "Action will be performed")
-                                    performAction(rule.content.act.actionType, rule.content.act.actionObject,gson)
-                                    break
+                                val tResult = testTrigger(rule.content.trig.triggerType, rule.content.trig.triggerObject,gson)
+                                if (tResult){
+                                    Log.d("Action", "Action will be performed (Activation)")
+                                    val aResult = performAction(rule.content.act.actionType, rule.content.act.actionObject,gson)
+                                    if (aResult) {
+                                        rule.rule.ruleId?.let { ruleUseCases.setActive(true, it) }
+                                        rule.rule.active = true
+                                        break
+                                    }
                                 }
                             }
                         }
@@ -169,26 +208,30 @@ class AunoaService: Service() {
                 val timeTrigger = gson.fromJson(triggerString, TimeTrigger::class.java)
                 val weekday = if (reverse) timeTrigger.endWeekday else timeTrigger.startWeekday
                 if (weekday == LocalDate.now().dayOfWeek){
-                    val time = if (reverse) timeTrigger.endTime else timeTrigger.startTime
-                    if (LocalTime.now().toSecondOfDay() > time) {
-                        return true
+                    return if (reverse){
+                        LocalTime.now().toSecondOfDay() > timeTrigger.endTime
+                    } else {
+                        var endTime = timeTrigger.endTime
+                        if (timeTrigger.endWeekday != timeTrigger.startWeekday){
+                            endTime = 86400
+                        }
+                        LocalTime.now().toSecondOfDay() > timeTrigger.startTime && LocalTime.now().toSecondOfDay() < endTime
                     }
                 }
                 return false
             }
             "LocationTrigger" -> {
                 val locationTrigger = gson.fromJson(triggerString, LocationTrigger::class.java)
-                val task = requestCurrentLocation()
-                val result = Tasks.await(task)
-                return if (result != null) {
-                    Log.d("Cord Received", result.latitude.toString())
-                    Log.d("Cord Received", result.longitude.toString())
+                return if (lastKnownLat != null && lastKnownLon !=null) {
+                    Log.d("Cord Received", lastKnownLat.toString())
+                    Log.d("Cord Received", lastKnownLon.toString())
                     val distance = distanceBetweenTwoPoints(
-                        result.latitude,
-                        result.longitude,
+                        lastKnownLat!!,
+                        lastKnownLon!!,
                         locationTrigger.latitude,
                         locationTrigger.longitude
                     )
+                    Log.d("Distance", distance.toString())
                     if (reverse) {
                         distance > locationTrigger.radius
                     } else {
@@ -199,14 +242,14 @@ class AunoaService: Service() {
                 }
             }
             else -> {
-                Log.d("Database-Error", "Unsupported Triggered Type in Database")
+                Log.d("Database-Error", "Unsupported Trigger-Type in Database")
                 return false
             }
         }
     }
 
 
-    private fun performAction(actionType: String, actionString: String,gson: Gson, reverse: Boolean = false){
+    private fun performAction(actionType: String, actionString: String,gson: Gson, reverse: Boolean = false): Boolean{
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         when(actionType){
             "VolumeAction" -> {
@@ -218,8 +261,15 @@ class AunoaService: Service() {
                         1 -> audioManager.ringerMode = AudioManager.RINGER_MODE_VIBRATE
                         2 -> audioManager.ringerMode = AudioManager.RINGER_MODE_NORMAL
                     }
+                    return true
                 }
+                Log.d("Volume-Error", "No rights to change Volume Setting")
+                return false
 
+            }
+            else -> {
+                Log.d("Database-Error", "Unsupported Action-Type in Database")
+                return false
             }
         }
     }

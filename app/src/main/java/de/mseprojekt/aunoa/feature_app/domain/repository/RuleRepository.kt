@@ -17,4 +17,6 @@ interface RuleRepository {
     suspend fun insertRule(rule: Rule)
     suspend fun insertAction(action: Act)
     suspend fun insertTrigger(trigger: Trig)
+    suspend fun setActive(active: Boolean, id: Int)
+    suspend fun setEnabled(enabled: Boolean, id: Int)
 }

@@ -27,7 +27,7 @@ interface RuleDao {
     fun getRulesWithoutFlow(): List<RuleWithActAndTrig>
 
     @Transaction
-    @Query("SELECT * FROM rule WHERE RuleId = :id")
+    @Query("SELECT * FROM rule WHERE ruleId = :id")
     suspend fun getRuleById(id: Int): RuleWithActAndTrig?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -38,4 +38,10 @@ interface RuleDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTrigger(trigger: Trig)
+
+    @Query("Update rule SET active=:active WHERE ruleId = :id")
+    suspend fun setActive(active: Boolean, id: Int)
+
+    @Query("Update rule SET enabled=:enabled WHERE ruleId = :id")
+    suspend fun setEnabled(enabled: Boolean, id: Int)
 }
