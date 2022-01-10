@@ -51,18 +51,15 @@ class MainActivity : ComponentActivity(
                         Manifest.permission.ACCESS_NOTIFICATION_POLICY
                     )
                 )
-                if (permissionsState.allPermissionsGranted) {
-                    Log.d("Aunoa", "all permissions granted")
-                    val manager =
-                        getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                    if (!manager.isNotificationPolicyAccessGranted) {
-                        val intent = Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
-                        startActivity(intent)
-                    }
-                    CoroutineScope(Dispatchers.Main).launch {
-                        if (stateUseCases.getCurrentState()) {
-                            foregroundStartService("Start")
-                        }
+                val manager =
+                    getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                if (!manager.isNotificationPolicyAccessGranted) {
+                    val intent = Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
+                    startActivity(intent)
+                }
+                CoroutineScope(Dispatchers.Main).launch {
+                    if (stateUseCases.getCurrentState()) {
+                        foregroundStartService("Start")
                     }
                 }
                 val navController = rememberNavController()

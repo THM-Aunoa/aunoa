@@ -1,9 +1,11 @@
 package de.mseprojekt.aunoa.services
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.location.Location
 import android.os.IBinder
 import android.util.Log
@@ -22,8 +24,6 @@ import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.Task
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
-import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithActAndTrig
-import de.mseprojekt.aunoa.feature_app.domain.model.Rule
 import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.ActionObject
 import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.VolumeAction
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.LocationTrigger
@@ -34,10 +34,8 @@ import de.mseprojekt.aunoa.other.distanceBetweenTwoPoints
 import java.time.LocalDate
 import java.time.LocalTime
 import javax.inject.Inject
-import com.google.android.gms.tasks.Tasks
-
-
-
+import de.mseprojekt.aunoa.feature_app.domain.model.UnzippedRule
+import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.OperationsUseCases
 
 
 const val INTENT_COMMAND = "Command"
@@ -60,16 +58,21 @@ class AunoaService: Service() {
     private val fusedLocationClient: FusedLocationProviderClient by lazy {
         LocationServices.getFusedLocationProviderClient(this)
     }
-    private var rules: ArrayList<ArrayList<RuleWithActAndTrig>> = ArrayList()
+    private var requestLocation = false
+    private var rules: ArrayList<ArrayList<UnzippedRule>> = ArrayList()
+
     @Inject
     lateinit var ruleUseCases: RuleUseCases
+
+    @Inject
+    lateinit var operationsUseCases: OperationsUseCases
 
     private var lastKnownLat: Double? = null
     private var lastKnownLon: Double? = null
 
     private var cancellationTokenSource = CancellationTokenSource()
     private var isrunning = false
-    private var delay : Long = 10000L // 60000L = 1 minute
+    private var delay : Long = 160000L // 60000L = 1 minute
 
     override fun onBind(p0: Intent?): IBinder? = null
 
@@ -119,10 +122,10 @@ class AunoaService: Service() {
             val gson = Gson()
             /*
             var xx: TriggerObject = TimeTrigger(
-                endTime = LocalTime.now().toSecondOfDay()+120,
                 startTime = LocalTime.now().toSecondOfDay()-120,
+                endTime = LocalTime.now().toSecondOfDay()+120,
+                startWeekday = LocalDate.now().dayOfWeek,
                 endWeekday = LocalDate.now().dayOfWeek,
-                startWeekday = LocalDate.now().dayOfWeek
             )
             var yy: ActionObject = VolumeAction(
                 activateVolume = 0,
@@ -138,10 +141,12 @@ class AunoaService: Service() {
                 priority = 10,
             )
 
+             */
+
             var xx: TriggerObject = LocationTrigger(
-                latitude = 50.5871366,
-                longitude = 8.6819269,
-                radius = 500.0
+                latitude = 50.54948477682841,
+                longitude = 8.613110570286805,
+                radius = 400.0
             )
             var yy: ActionObject = VolumeAction(
                 activateVolume = 2,
@@ -156,25 +161,81 @@ class AunoaService: Service() {
                 description = "Test123",
                 priority = 10,
             )
-            */
-            updateRuleList()
+
+
+            updateRuleList(gson)
             Log.d("a", rules.toString())
+            if (requestLocation) {
+                if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED &&
+                    checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED) {
+                    requestCurrentLocation().addOnCompleteListener { task: Task<Location> ->
+                        if (task.isSuccessful && task.result != null) {
+                            lastKnownLat = task.result.latitude
+                            lastKnownLon = task.result.longitude
+                            Log.d("Location", "Location update received")
+                        }
+                    }
+                    delay(20000)
+                }
+            }
+            for (ruleCategories in rules){
+                var activeRuleFound = false
+                for(rule in ruleCategories) {
+                    val tResult = testTrigger(rule.trigger)
+                    if (!tResult){
+                        var aResult = true
+                        if (!activeRuleFound) {
+                            Log.d("Action", "Action will be performed (Deactivation)")
+                            aResult = performAction(rule.action, true)
+                            rule.rule.ruleId?.let { operationsUseCases.insertOperation(it, aResult) }
+                        }
+                        if (aResult) {
+                            rule.rule.ruleId?.let { ruleUseCases.setActive(false, it) }
+                            rule.rule.active = false
+                        }
+                    }else{
+                        var aResult = true
+                        if (!activeRuleFound) {
+                            Log.d("Action", "Action will be performed (Activation)")
+                            aResult = performAction(rule.action)
+                            rule.rule.ruleId?.let { operationsUseCases.insertOperation(it, aResult) }
+                        }
+                        activeRuleFound = true
+                        if (aResult) {
+                            rule.rule.ruleId?.let { ruleUseCases.setActive(true, it) }
+                            rule.rule.active = true
+                        }
+                    }
+                }
+            }
+            delay(delay)
             while (isrunning) {
-                requestCurrentLocation().addOnCompleteListener { task: Task<Location> ->
-                    if (task.isSuccessful && task.result != null) {
-                        lastKnownLat = task.result.latitude
-                        lastKnownLon = task.result.longitude
-                        Log.d("L", "location set")
+                if (requestLocation) {
+                    if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED &&
+                        checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED) {
+                        requestCurrentLocation().addOnCompleteListener { task: Task<Location> ->
+                            if (task.isSuccessful && task.result != null) {
+                                lastKnownLat = task.result.latitude
+                                lastKnownLon = task.result.longitude
+                                Log.d("Location", "Location update received")
+                            }
+                        }
+                        delay(20000)
                     }
                 }
                 for (ruleCategories in rules){
                     for(rule in ruleCategories){
                         if (rule.rule.enabled){
                             if (rule.rule.active){
-                                val tResult = testTrigger(rule.content.trig.triggerType, rule.content.trig.triggerObject,gson, true)
+                                val tResult = testTrigger(rule.trigger, true)
                                 if (tResult){
                                     Log.d("Action", "Action will be performed (Deactivation)")
-                                    val aResult = performAction(rule.content.act.actionType, rule.content.act.actionObject,gson, true)
+                                    val aResult = performAction(rule.action, true)
+                                    rule.rule.ruleId?.let { operationsUseCases.insertOperation(it, aResult) }
                                     if (aResult) {
                                         rule.rule.ruleId?.let { ruleUseCases.setActive(false, it) }
                                         rule.rule.active = false
@@ -183,10 +244,11 @@ class AunoaService: Service() {
                                     break
                                 }
                             }else{
-                                val tResult = testTrigger(rule.content.trig.triggerType, rule.content.trig.triggerObject,gson)
+                                val tResult = testTrigger(rule.trigger)
                                 if (tResult){
                                     Log.d("Action", "Action will be performed (Activation)")
-                                    val aResult = performAction(rule.content.act.actionType, rule.content.act.actionObject,gson)
+                                    val aResult = performAction(rule.action)
+                                    rule.rule.ruleId?.let { operationsUseCases.insertOperation(it, aResult) }
                                     if (aResult) {
                                         rule.rule.ruleId?.let { ruleUseCases.setActive(true, it) }
                                         rule.rule.active = true
@@ -202,42 +264,39 @@ class AunoaService: Service() {
         }
     }
 
-    private fun testTrigger(triggerType: String, triggerString: String, gson: Gson, reverse: Boolean = false): Boolean{
-        when(triggerType){
-            "TimeTrigger" -> {
-                val timeTrigger = gson.fromJson(triggerString, TimeTrigger::class.java)
-                val weekday = if (reverse) timeTrigger.endWeekday else timeTrigger.startWeekday
+    private fun testTrigger(trigger: TriggerObject, reverse: Boolean = false): Boolean{
+        when(trigger){
+            is TimeTrigger -> {
+                val weekday = if (reverse) trigger.endWeekday else trigger.startWeekday
                 if (weekday == LocalDate.now().dayOfWeek){
                     return if (reverse){
-                        LocalTime.now().toSecondOfDay() > timeTrigger.endTime
+                        LocalTime.now().toSecondOfDay() > trigger.endTime
                     } else {
-                        var endTime = timeTrigger.endTime
-                        if (timeTrigger.endWeekday != timeTrigger.startWeekday){
+                        var endTime = trigger.endTime
+                        if (trigger.endWeekday != trigger.startWeekday){
                             endTime = 86400
                         }
-                        LocalTime.now().toSecondOfDay() > timeTrigger.startTime && LocalTime.now().toSecondOfDay() < endTime
+                        LocalTime.now().toSecondOfDay() > trigger.startTime && LocalTime.now().toSecondOfDay() < endTime
                     }
                 }
                 return false
             }
-            "LocationTrigger" -> {
-                val locationTrigger = gson.fromJson(triggerString, LocationTrigger::class.java)
+            is LocationTrigger -> {
                 return if (lastKnownLat != null && lastKnownLon !=null) {
-                    Log.d("Cord Received", lastKnownLat.toString())
-                    Log.d("Cord Received", lastKnownLon.toString())
                     val distance = distanceBetweenTwoPoints(
                         lastKnownLat!!,
                         lastKnownLon!!,
-                        locationTrigger.latitude,
-                        locationTrigger.longitude
+                        trigger.latitude,
+                        trigger.longitude
                     )
                     Log.d("Distance", distance.toString())
                     if (reverse) {
-                        distance > locationTrigger.radius
+                        distance > trigger.radius
                     } else {
-                        locationTrigger.radius >= distance
+                        trigger.radius >= distance
                     }
                 } else {
+                    Log.d("Location-Error", "Unable to get current Location")
                     false
                 }
             }
@@ -249,14 +308,13 @@ class AunoaService: Service() {
     }
 
 
-    private fun performAction(actionType: String, actionString: String,gson: Gson, reverse: Boolean = false): Boolean{
+    private fun performAction(action: ActionObject, reverse: Boolean = false): Boolean{
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        when(actionType){
-            "VolumeAction" -> {
+        when(action){
+            is VolumeAction -> {
                 if (manager.isNotificationPolicyAccessGranted) {
-                    val volumeAction = gson.fromJson(actionString, VolumeAction::class.java)
                     val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-                    when (if (reverse) volumeAction.deactivateVolume else volumeAction.activateVolume) {
+                    when (if (reverse) action.deactivateVolume else action.activateVolume) {
                         0 -> audioManager.ringerMode = AudioManager.RINGER_MODE_SILENT
                         1 -> audioManager.ringerMode = AudioManager.RINGER_MODE_VIBRATE
                         2 -> audioManager.ringerMode = AudioManager.RINGER_MODE_NORMAL
@@ -274,14 +332,18 @@ class AunoaService: Service() {
         }
     }
 
-    fun updateRuleList(){
+    fun updateRuleList(gson: Gson){
         // Todo this block + testTrigger/action needs to be in a mutex
         val newRules = ruleUseCases.getRulesWithoutFlow()
         rules = ArrayList()
+        requestLocation = false
         for (i in ACTION_OBJECTS.indices){
             rules.add(ArrayList())
         }
         for (newRule in newRules) {
+            if (newRule.content.trig.triggerType == "LocationTrigger"){
+                requestLocation = true
+            }
             var index = -1
             for (i in ACTION_OBJECTS.indices) {
                 if (ACTION_OBJECTS[i] == newRule.content.act.actionType){
@@ -292,17 +354,44 @@ class AunoaService: Service() {
                 Log.d("Database-Error", "Unsupported Action Type in Database")
                 return
             }
+            val act: ActionObject = when(newRule.content.act.actionType){
+                "VolumeAction" ->{
+                    gson.fromJson(newRule.content.act.actionObject, VolumeAction::class.java)
+                }
+                else -> {
+                    Log.d("Database-Error", "Unsupported Action Type in Database")
+                    continue
+                }
+            }
+            val trig: TriggerObject = when(newRule.content.trig.triggerType){
+                "TimeTrigger" ->{
+                    gson.fromJson(newRule.content.trig.triggerObject, TimeTrigger::class.java)
+                }
+                "LocationTrigger" ->{
+                    gson.fromJson(newRule.content.trig.triggerObject, LocationTrigger::class.java)
+                }
+                else ->{
+                    Log.d("Database-Error", "Unsupported Trigger Type in Database")
+                    continue
+                }
+            }
+
+            val ruleToAppend = UnzippedRule(
+                rule = newRule.rule,
+                action = act,
+                trigger = trig
+            )
             if (rules[index].size == 0){
-                rules[index].add(newRule)
+                rules[index].add(ruleToAppend)
                 continue
             }
             if (newRule.rule.priority <= rules[index][rules[index].size-1].rule.priority){
-                rules[index].add(rules[index].size,newRule)
+                rules[index].add(rules[index].size,ruleToAppend)
                 continue
             }
             for (i in 0 until rules[index].size){
                 if (newRule.rule.priority > rules[index][i].rule.priority){
-                    rules[index].add(i, newRule)
+                    rules[index].add(i, ruleToAppend)
                     break
                 }
             }
