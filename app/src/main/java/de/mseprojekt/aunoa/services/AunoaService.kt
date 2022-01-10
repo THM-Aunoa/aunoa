@@ -3,13 +3,13 @@ package de.mseprojekt.aunoa.services
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.*
+import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.IBinder
 import android.util.Log
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import de.mseprojekt.aunoa.R
 import kotlinx.coroutines.CoroutineScope
@@ -17,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import android.media.AudioManager
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
@@ -36,20 +37,17 @@ import java.time.LocalTime
 import javax.inject.Inject
 import de.mseprojekt.aunoa.feature_app.domain.model.UnzippedRule
 import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.OperationsUseCases
+import de.mseprojekt.aunoa.feature_app.presentation.MainActivity
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 
 const val INTENT_COMMAND = "Command"
 const val INTENT_COMMAND_EXIT = "Exit"
-const val INTENT_COMMAND_REPLY = "Reply"
-const val INTENT_COMMAND_ACHIEVE = "Achieve"
 const val INTENT_COMMAND_START = "Start"
 
 private const val NOTIFICATION_CHANNEL_GENERAL = "Checking"
 private const val CODE_FOREGROUND_SERVICE = 1
-private const val CODE_REPLY_INTENT = 2
-private const val CODE_ACHIEVE_INTENT = 3
 
 private val ACTION_OBJECTS = listOf("VolumeAction")
 
@@ -80,6 +78,7 @@ class AunoaService: Service() {
 
     override fun onBind(p0: Intent?): IBinder? = null
 
+    @ExperimentalPermissionsApi
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         val command = intent.getStringExtra(INTENT_COMMAND)
         if (command == INTENT_COMMAND_EXIT) {
@@ -90,10 +89,6 @@ class AunoaService: Service() {
             this.isrunning = true
             showNotification()
             runService()
-        }
-        if (command == INTENT_COMMAND_REPLY) {
-            // Todo open app
-            Toast.makeText(this, "Clicked in Notification", Toast.LENGTH_SHORT).show()
         }
 
         return START_STICKY
@@ -441,22 +436,16 @@ class AunoaService: Service() {
         }
     }
 
+    @ExperimentalPermissionsApi
     @SuppressLint("LaunchActivityFromNotification")
     private fun showNotification() {
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val replyIntent = Intent(this, AunoaService::class.java).apply {
-            putExtra(INTENT_COMMAND, INTENT_COMMAND_REPLY)
-        }
-        val achieveIntent = Intent(this, AunoaService::class.java).apply {
-            putExtra(INTENT_COMMAND, INTENT_COMMAND_ACHIEVE)
-        }
-        val replyPendingIntent = PendingIntent.getService(
-            this, CODE_REPLY_INTENT, replyIntent, 0
+        val replyPendingIntent = PendingIntent.getActivity(
+            this,
+            0,
+            Intent(this, MainActivity::class.java),
+            FLAG_UPDATE_CURRENT
         )
-        val achievePendingIntent = PendingIntent.getService(
-            this, CODE_ACHIEVE_INTENT, achieveIntent, 0
-        )
-
         try {
             with(
                 NotificationChannel(
