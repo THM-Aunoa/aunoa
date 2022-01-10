@@ -36,6 +36,8 @@ import java.time.LocalTime
 import javax.inject.Inject
 import de.mseprojekt.aunoa.feature_app.domain.model.UnzippedRule
 import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.OperationsUseCases
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 
 const val INTENT_COMMAND = "Command"
@@ -61,6 +63,8 @@ class AunoaService: Service() {
     private var requestLocation = false
     private var rules: ArrayList<ArrayList<UnzippedRule>> = ArrayList()
 
+    private val mutex = Mutex()
+
     @Inject
     lateinit var ruleUseCases: RuleUseCases
 
@@ -72,7 +76,7 @@ class AunoaService: Service() {
 
     private var cancellationTokenSource = CancellationTokenSource()
     private var isrunning = false
-    private var delay : Long = 160000L // 60000L = 1 minute
+    private var delay : Long = 10000L // 60000L = 1 minute
 
     override fun onBind(p0: Intent?): IBinder? = null
 
@@ -120,7 +124,7 @@ class AunoaService: Service() {
     private fun runService() {
         CoroutineScope(Dispatchers.Main).launch {
             val gson = Gson()
-            /*
+
             var xx: TriggerObject = TimeTrigger(
                 startTime = LocalTime.now().toSecondOfDay()-120,
                 endTime = LocalTime.now().toSecondOfDay()+120,
@@ -141,7 +145,7 @@ class AunoaService: Service() {
                 priority = 10,
             )
 
-             */
+            /*
 
             var xx: TriggerObject = LocationTrigger(
                 latitude = 50.54948477682841,
@@ -161,6 +165,7 @@ class AunoaService: Service() {
                 description = "Test123",
                 priority = 10,
             )
+             */
 
 
             updateRuleList(gson)
@@ -180,32 +185,44 @@ class AunoaService: Service() {
                     delay(20000)
                 }
             }
-            for (ruleCategories in rules){
-                var activeRuleFound = false
-                for(rule in ruleCategories) {
-                    val tResult = testTrigger(rule.trigger)
-                    if (!tResult){
-                        var aResult = true
-                        if (!activeRuleFound) {
-                            Log.d("Action", "Action will be performed (Deactivation)")
-                            aResult = performAction(rule.action, true)
-                            rule.rule.ruleId?.let { operationsUseCases.insertOperation(it, aResult) }
-                        }
-                        if (aResult) {
-                            rule.rule.ruleId?.let { ruleUseCases.setActive(false, it) }
-                            rule.rule.active = false
-                        }
-                    }else{
-                        var aResult = true
-                        if (!activeRuleFound) {
-                            Log.d("Action", "Action will be performed (Activation)")
-                            aResult = performAction(rule.action)
-                            rule.rule.ruleId?.let { operationsUseCases.insertOperation(it, aResult) }
-                        }
-                        activeRuleFound = true
-                        if (aResult) {
-                            rule.rule.ruleId?.let { ruleUseCases.setActive(true, it) }
-                            rule.rule.active = true
+            mutex.withLock {
+                for (ruleCategories in rules) {
+                    var activeRuleFound = false
+                    for (rule in ruleCategories) {
+                        val tResult = testTrigger(rule.trigger)
+                        if (!tResult) {
+                            var aResult = true
+                            if (!activeRuleFound) {
+                                Log.d("Action", "Action will be performed (Deactivation)")
+                                aResult = performAction(rule.action, true)
+                                rule.rule.ruleId?.let {
+                                    operationsUseCases.insertOperation(
+                                        it,
+                                        aResult
+                                    )
+                                }
+                            }
+                            if (aResult) {
+                                rule.rule.ruleId?.let { ruleUseCases.setActive(false, it) }
+                                rule.rule.active = false
+                            }
+                        } else {
+                            var aResult = true
+                            if (!activeRuleFound) {
+                                Log.d("Action", "Action will be performed (Activation)")
+                                aResult = performAction(rule.action)
+                                rule.rule.ruleId?.let {
+                                    operationsUseCases.insertOperation(
+                                        it,
+                                        aResult
+                                    )
+                                }
+                            }
+                            activeRuleFound = true
+                            if (aResult) {
+                                rule.rule.ruleId?.let { ruleUseCases.setActive(true, it) }
+                                rule.rule.active = true
+                            }
                         }
                     }
                 }
@@ -227,32 +244,54 @@ class AunoaService: Service() {
                         delay(20000)
                     }
                 }
-                for (ruleCategories in rules){
-                    for(rule in ruleCategories){
-                        if (rule.rule.enabled){
-                            if (rule.rule.active){
-                                val tResult = testTrigger(rule.trigger, true)
-                                if (tResult){
-                                    Log.d("Action", "Action will be performed (Deactivation)")
-                                    val aResult = performAction(rule.action, true)
-                                    rule.rule.ruleId?.let { operationsUseCases.insertOperation(it, aResult) }
-                                    if (aResult) {
-                                        rule.rule.ruleId?.let { ruleUseCases.setActive(false, it) }
-                                        rule.rule.active = false
+                mutex.withLock {
+                    for (ruleCategories in rules) {
+                        for (rule in ruleCategories) {
+                            if (rule.rule.enabled) {
+                                if (rule.rule.active) {
+                                    val tResult = testTrigger(rule.trigger, true)
+                                    if (tResult) {
+                                        Log.d("Action", "Action will be performed (Deactivation)")
+                                        val aResult = performAction(rule.action, true)
+                                        rule.rule.ruleId?.let {
+                                            operationsUseCases.insertOperation(
+                                                it,
+                                                aResult
+                                            )
+                                        }
+                                        if (aResult) {
+                                            rule.rule.ruleId?.let {
+                                                ruleUseCases.setActive(
+                                                    false,
+                                                    it
+                                                )
+                                            }
+                                            rule.rule.active = false
+                                        }
+                                    } else {
+                                        break
                                     }
                                 } else {
-                                    break
-                                }
-                            }else{
-                                val tResult = testTrigger(rule.trigger)
-                                if (tResult){
-                                    Log.d("Action", "Action will be performed (Activation)")
-                                    val aResult = performAction(rule.action)
-                                    rule.rule.ruleId?.let { operationsUseCases.insertOperation(it, aResult) }
-                                    if (aResult) {
-                                        rule.rule.ruleId?.let { ruleUseCases.setActive(true, it) }
-                                        rule.rule.active = true
-                                        break
+                                    val tResult = testTrigger(rule.trigger)
+                                    if (tResult) {
+                                        Log.d("Action", "Action will be performed (Activation)")
+                                        val aResult = performAction(rule.action)
+                                        rule.rule.ruleId?.let {
+                                            operationsUseCases.insertOperation(
+                                                it,
+                                                aResult
+                                            )
+                                        }
+                                        if (aResult) {
+                                            rule.rule.ruleId?.let {
+                                                ruleUseCases.setActive(
+                                                    true,
+                                                    it
+                                                )
+                                            }
+                                            rule.rule.active = true
+                                            break
+                                        }
                                     }
                                 }
                             }
@@ -332,67 +371,71 @@ class AunoaService: Service() {
         }
     }
 
-    fun updateRuleList(gson: Gson){
-        // Todo this block + testTrigger/action needs to be in a mutex
+    suspend fun updateRuleList(gson: Gson){
         val newRules = ruleUseCases.getRulesWithoutFlow()
-        rules = ArrayList()
-        requestLocation = false
-        for (i in ACTION_OBJECTS.indices){
-            rules.add(ArrayList())
-        }
-        for (newRule in newRules) {
-            if (newRule.content.trig.triggerType == "LocationTrigger"){
-                requestLocation = true
-            }
-            var index = -1
+        mutex.withLock {
+            rules = ArrayList()
+            requestLocation = false
             for (i in ACTION_OBJECTS.indices) {
-                if (ACTION_OBJECTS[i] == newRule.content.act.actionType){
-                    index = i
-                }
+                rules.add(ArrayList())
             }
-            if (index == -1) {
-                Log.d("Database-Error", "Unsupported Action Type in Database")
-                return
-            }
-            val act: ActionObject = when(newRule.content.act.actionType){
-                "VolumeAction" ->{
-                    gson.fromJson(newRule.content.act.actionObject, VolumeAction::class.java)
+            for (newRule in newRules) {
+                if (newRule.content.trig.triggerType == "LocationTrigger") {
+                    requestLocation = true
                 }
-                else -> {
+                var index = -1
+                for (i in ACTION_OBJECTS.indices) {
+                    if (ACTION_OBJECTS[i] == newRule.content.act.actionType) {
+                        index = i
+                    }
+                }
+                if (index == -1) {
                     Log.d("Database-Error", "Unsupported Action Type in Database")
-                    continue
+                    return
                 }
-            }
-            val trig: TriggerObject = when(newRule.content.trig.triggerType){
-                "TimeTrigger" ->{
-                    gson.fromJson(newRule.content.trig.triggerObject, TimeTrigger::class.java)
+                val act: ActionObject = when (newRule.content.act.actionType) {
+                    "VolumeAction" -> {
+                        gson.fromJson(newRule.content.act.actionObject, VolumeAction::class.java)
+                    }
+                    else -> {
+                        Log.d("Database-Error", "Unsupported Action Type in Database")
+                        continue
+                    }
                 }
-                "LocationTrigger" ->{
-                    gson.fromJson(newRule.content.trig.triggerObject, LocationTrigger::class.java)
+                val trig: TriggerObject = when (newRule.content.trig.triggerType) {
+                    "TimeTrigger" -> {
+                        gson.fromJson(newRule.content.trig.triggerObject, TimeTrigger::class.java)
+                    }
+                    "LocationTrigger" -> {
+                        gson.fromJson(
+                            newRule.content.trig.triggerObject,
+                            LocationTrigger::class.java
+                        )
+                    }
+                    else -> {
+                        Log.d("Database-Error", "Unsupported Trigger Type in Database")
+                        continue
+                    }
                 }
-                else ->{
-                    Log.d("Database-Error", "Unsupported Trigger Type in Database")
-                    continue
-                }
-            }
 
-            val ruleToAppend = UnzippedRule(
-                rule = newRule.rule,
-                action = act,
-                trigger = trig
-            )
-            if (rules[index].size == 0){
-                rules[index].add(ruleToAppend)
-                continue
-            }
-            if (newRule.rule.priority <= rules[index][rules[index].size-1].rule.priority){
-                rules[index].add(rules[index].size,ruleToAppend)
-                continue
-            }
-            for (i in 0 until rules[index].size){
-                if (newRule.rule.priority > rules[index][i].rule.priority){
-                    rules[index].add(i, ruleToAppend)
-                    break
+                val ruleToAppend = UnzippedRule(
+                    rule = newRule.rule,
+                    action = act,
+                    trigger = trig
+                )
+                if (rules[index].size == 0) {
+                    rules[index].add(ruleToAppend)
+                    continue
+                }
+                if (newRule.rule.priority <= rules[index][rules[index].size - 1].rule.priority) {
+                    rules[index].add(rules[index].size, ruleToAppend)
+                    continue
+                }
+                for (i in 0 until rules[index].size) {
+                    if (newRule.rule.priority > rules[index][i].rule.priority) {
+                        rules[index].add(i, ruleToAppend)
+                        break
+                    }
                 }
             }
         }
