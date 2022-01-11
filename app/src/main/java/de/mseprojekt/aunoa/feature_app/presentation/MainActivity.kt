@@ -1,6 +1,7 @@
 package de.mseprojekt.aunoa.feature_app.presentation
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
@@ -40,6 +41,7 @@ class MainActivity : ComponentActivity(
     @Inject
     lateinit var stateUseCases: StateUseCases
 
+    @SuppressLint("CoroutineCreationDuringComposition")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -48,7 +50,9 @@ class MainActivity : ComponentActivity(
                     permissions = listOf(
                         Manifest.permission.ACCESS_FINE_LOCATION,
                         Manifest.permission.ACCESS_COARSE_LOCATION,
-                        Manifest.permission.ACCESS_NOTIFICATION_POLICY
+                        Manifest.permission.ACCESS_NOTIFICATION_POLICY,
+                        Manifest.permission.ACCESS_WIFI_STATE,
+                        Manifest.permission.ACCESS_NETWORK_STATE
                     )
                 )
                 val manager =

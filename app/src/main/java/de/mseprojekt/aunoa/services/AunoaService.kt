@@ -4,6 +4,8 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.*
 import android.app.PendingIntent.FLAG_UPDATE_CURRENT
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -17,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import android.media.AudioManager
+import android.net.ConnectivityManager
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
@@ -27,9 +30,6 @@ import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
 import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.ActionObject
 import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.VolumeAction
-import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.LocationTrigger
-import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TimeTrigger
-import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TriggerObject
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.RuleUseCases
 import de.mseprojekt.aunoa.other.distanceBetweenTwoPoints
 import java.time.LocalDate
@@ -40,6 +40,10 @@ import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.OperationsUseCas
 import de.mseprojekt.aunoa.feature_app.presentation.MainActivity
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import android.net.wifi.WifiManager
+import android.text.TextUtils
+import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.*
+import java.lang.reflect.Method
 
 
 const val INTENT_COMMAND = "Command"
@@ -119,12 +123,11 @@ class AunoaService: Service() {
     private fun runService() {
         CoroutineScope(Dispatchers.Main).launch {
             val gson = Gson()
+/*
 
-            var xx: TriggerObject = TimeTrigger(
-                startTime = LocalTime.now().toSecondOfDay()-120,
-                endTime = LocalTime.now().toSecondOfDay()+120,
-                startWeekday = LocalDate.now().dayOfWeek,
-                endWeekday = LocalDate.now().dayOfWeek,
+
+            var xx: TriggerObject = BluetoothTrigger(
+                name = "abc"
             )
             var yy: ActionObject = VolumeAction(
                 activateVolume = 0,
@@ -133,34 +136,55 @@ class AunoaService: Service() {
             ruleUseCases.insertRule(
                 trigger = xx,
                 action = yy,
-                triggerObjectName = "TimeTrigger",
+                triggerObjectName = "BluetoothTrigger",
                 actionObjectName = "VolumeAction",
                 title = "Test123",
                 description = "Test123",
                 priority = 10,
             )
 
-            /*
 
-            var xx: TriggerObject = LocationTrigger(
-                latitude = 50.54948477682841,
-                longitude = 8.613110570286805,
-                radius = 400.0
-            )
-            var yy: ActionObject = VolumeAction(
-                activateVolume = 2,
-                deactivateVolume = 0
-            )
-            ruleUseCases.insertRule(
-                trigger = xx,
-                action = yy,
-                triggerObjectName = "LocationTrigger",
-                actionObjectName = "VolumeAction",
-                title = "Test123",
-                description = "Test123",
-                priority = 10,
-            )
-             */
+           var xx: TriggerObject = TimeTrigger(
+               startTime = LocalTime.now().toSecondOfDay()-120,
+               endTime = LocalTime.now().toSecondOfDay()+120,
+               startWeekday = LocalDate.now().dayOfWeek,
+               endWeekday = LocalDate.now().dayOfWeek,
+           )
+           var yy: ActionObject = VolumeAction(
+               activateVolume = 0,
+               deactivateVolume = 2
+           )
+           ruleUseCases.insertRule(
+               trigger = xx,
+               action = yy,
+               triggerObjectName = "TimeTrigger",
+               actionObjectName = "VolumeAction",
+               title = "Test123",
+               description = "Test123",
+               priority = 10,
+           )
+
+
+
+           var xx: TriggerObject = LocationTrigger(
+               latitude = 50.54948477682841,
+               longitude = 8.613110570286805,
+               radius = 400.0
+           )
+           var yy: ActionObject = VolumeAction(
+               activateVolume = 2,
+               deactivateVolume = 0
+           )
+           ruleUseCases.insertRule(
+               trigger = xx,
+               action = yy,
+               triggerObjectName = "LocationTrigger",
+               actionObjectName = "VolumeAction",
+               title = "Test123",
+               description = "Test123",
+               priority = 10,
+           )
+            */
 
 
             updateRuleList(gson)
@@ -334,10 +358,72 @@ class AunoaService: Service() {
                     false
                 }
             }
+            is WifiTrigger ->{
+                val cManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                val networkInfo = cManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI)
+                if (networkInfo != null) {
+                    if (networkInfo.isConnected) {
+                        val wManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
+                        val connectionInfo = wManager.connectionInfo
+                        if (connectionInfo != null && !TextUtils.isEmpty(connectionInfo.ssid)) {
+                            if (trigger.name == connectionInfo.ssid){
+                                return !reverse
+                            }
+                        }
+                    }
+                    return reverse
+                }
+                Log.d("Wifi-Error", "No Network Info available")
+                return false
+            }
+            is BluetoothTrigger ->{
+                val btManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+                val pairedDevices = btManager.adapter?.bondedDevices
+                if (pairedDevices != null) {
+                    if (pairedDevices.size > 0) {
+                        for (device in pairedDevices) {
+                            if (trigger.name == device.name){
+                                val deviceName = device.name
+                                val macAddress = device.address
+                                val type = device.type
+                                val connected = isConnected(device)
+                                Log.i(
+                                    " pairedDevices ",
+                                    "paired device: $deviceName at $macAddress + $type  + $connected "
+                                )
+                                return if (reverse){
+                                    !connected
+                                }else{
+                                    connected
+                                }
+                            }
+                        }
+                        Log.d("Bluetooth Error", "No Device with given Name found")
+                        return false
+                    }
+                    Log.d("Bluetooth Error", "No Device Found")
+                    return false
+                }
+                Log.d("Bluetooth Error", "No Bluetooth Adapter Found")
+                return false
+            }
+            is NfcTrigger ->{
+                Log.d("NFC-Error", "NFC-Trigger not supported yet")
+                return false
+            }
             else -> {
                 Log.d("Database-Error", "Unsupported Trigger-Type in Database")
                 return false
             }
+        }
+    }
+
+    private fun isConnected(device: BluetoothDevice): Boolean {
+        return try {
+            val m: Method = device.javaClass.getMethod("isConnected")
+            m.invoke(device) as Boolean
+        } catch (e: Exception) {
+            throw IllegalStateException(e)
         }
     }
 
@@ -407,6 +493,25 @@ class AunoaService: Service() {
                             LocationTrigger::class.java
                         )
                     }
+                    "WifiTrigger" ->{
+                        gson.fromJson(
+                            newRule.content.trig.triggerObject,
+                            WifiTrigger::class.java
+                        )
+                    }
+                    "BluetoothTrigger" -> {
+                        gson.fromJson(
+                            newRule.content.trig.triggerObject,
+                            BluetoothTrigger::class.java
+                        )
+                    }
+
+                    "NfcTrigger" -> {
+                        gson.fromJson(
+                            newRule.content.trig.triggerObject,
+                            NfcTrigger::class.java
+                        )
+                    }
                     else -> {
                         Log.d("Database-Error", "Unsupported Trigger Type in Database")
                         continue
@@ -458,7 +563,7 @@ class AunoaService: Service() {
                 setShowBadge(false)
                 enableVibration(false)
                 setSound(null, null)
-                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+                lockscreenVisibility = Notification.VISIBILITY_PRIVATE
                 manager.createNotificationChannel(this)
             }
         } catch (e: Exception) {
