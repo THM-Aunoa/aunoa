@@ -8,7 +8,7 @@ import de.mseprojekt.aunoa.feature_app.domain.model.*
 
 
 @Database(
-    entities = [Rule::class, Operation::class, Act::class, Trig::class, Tag::class, RuleTagCrossRef::class, State::class],
+    entities = [Rule::class, Operation::class, Act::class, Trig::class, Tag::class, RuleTagCrossRef::class, State::class, Cell::class, Region::class],
     version = 1,
     exportSchema = false
 )
@@ -19,6 +19,7 @@ abstract class AppDatabase: RoomDatabase() {
     abstract val operationDao: OperationDao
     abstract val ruleDao: RuleDao
     abstract val stateDao: StateDao
+    abstract val cellDao: CellDao
 
     companion object {
         const val DATABASE_NAME = "app_db"

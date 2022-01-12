@@ -16,6 +16,7 @@ interface RuleRepository {
     fun getRulesWithTags(): Flow<List<RuleWithTags>>
     suspend fun insertRule(rule: Rule)
     suspend fun insertAction(action: Act)
+    suspend fun deleteRule(ruleId: Int)
     suspend fun insertTrigger(trigger: Trig)
     suspend fun setActive(active: Boolean, id: Int)
     suspend fun setEnabled(enabled: Boolean, id: Int)

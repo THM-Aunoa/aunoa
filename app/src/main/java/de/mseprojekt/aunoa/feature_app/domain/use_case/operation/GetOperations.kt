@@ -1,4 +1,4 @@
-package de.mseprojekt.aunoa.feature_app.domain.use_case.activity
+package de.mseprojekt.aunoa.feature_app.domain.use_case.operation
 
 import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithOperations
 import de.mseprojekt.aunoa.feature_app.domain.repository.OperationRepository

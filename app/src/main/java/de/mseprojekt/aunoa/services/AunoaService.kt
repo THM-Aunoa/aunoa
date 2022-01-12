@@ -3,6 +3,7 @@ package de.mseprojekt.aunoa.services
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.*
+import android.app.NotificationManager.IMPORTANCE_LOW
 import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
@@ -36,7 +37,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 import javax.inject.Inject
 import de.mseprojekt.aunoa.feature_app.domain.model.UnzippedRule
-import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.OperationsUseCases
+import de.mseprojekt.aunoa.feature_app.domain.use_case.operation.OperationsUseCases
 import de.mseprojekt.aunoa.feature_app.presentation.MainActivity
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -44,6 +45,13 @@ import android.net.wifi.WifiManager
 import android.text.TextUtils
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.*
 import java.lang.reflect.Method
+
+import android.os.Build
+import android.telephony.*
+
+import android.telephony.cdma.CdmaCellLocation
+import android.telephony.gsm.GsmCellLocation
+import de.mseprojekt.aunoa.feature_app.domain.use_case.cell.CellUseCases
 
 
 const val INTENT_COMMAND = "Command"
@@ -66,6 +74,9 @@ class AunoaService: Service() {
     private var rules: ArrayList<ArrayList<UnzippedRule>> = ArrayList()
 
     private val mutex = Mutex()
+
+    @Inject
+    lateinit var cellUseCases: CellUseCases
 
     @Inject
     lateinit var ruleUseCases: RuleUseCases
@@ -112,20 +123,40 @@ class AunoaService: Service() {
         )
     }
 
-    @SuppressLint("MissingPermission")
-    private fun requestLastKnownLocation(): Task<Location> {
-        return fusedLocationClient.getCurrentLocation(
-            LocationRequest.PRIORITY_NO_POWER,
-            cancellationTokenSource.token
-        )
-    }
-
     private fun runService() {
         CoroutineScope(Dispatchers.Main).launch {
             val gson = Gson()
-/*
 
+            cellUseCases.insertRegion("Test")
+            val regions= cellUseCases.getRegions()
+            for(region in regions) {
+                if (region.name=="Test") {
+                    region.regionId?.let {
+                        cellUseCases.insertCell(it, 27945)
+                        cellUseCases.insertCell(it,47945)
+                        cellUseCases.insertCell(it,19946778)
+                        cellUseCases.insertCell(it,91)
+                    }
+                }
+            }
 
+            var xx: TriggerObject = CellTrigger(
+                name = "Test"
+            )
+            var yy: ActionObject = VolumeAction(
+                activateVolume = 0,
+                deactivateVolume = 2
+            )
+            ruleUseCases.insertRule(
+                trigger = xx,
+                action = yy,
+                triggerObjectName = "CellTrigger",
+                actionObjectName = "VolumeAction",
+                title = "Test123",
+                description = "Test123",
+                priority = 10,
+            )
+            /*
             var xx: TriggerObject = BluetoothTrigger(
                 name = "abc"
             )
@@ -407,8 +438,27 @@ class AunoaService: Service() {
                 Log.d("Bluetooth Error", "No Bluetooth Adapter Found")
                 return false
             }
+            is CellWithIdsTrigger ->{
+                if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED &&
+                    checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED) {
+                    val manager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+                    val currentCellId= getCellId(manager)
+                    if (currentCellId==null){
+                        Log.d("Cell-Error", "Cant read your cell Information")
+                    }else {
+                        if (trigger.cellIds.contains(currentCellId)){
+                            return !reverse
+                        }
+                        return reverse
+                    }
+                }
+                Log.d("Cell-Error", "No Permissions to read Current Cell Information")
+                return false
+            }
             is NfcTrigger ->{
-                Log.d("NFC-Error", "NFC-Trigger not supported yet")
+                Log.d("Nfc-Error", "Not yet implemented")
                 return false
             }
             else -> {
@@ -416,6 +466,46 @@ class AunoaService: Service() {
                 return false
             }
         }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun getCellId(manager: TelephonyManager): Long? {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val cellInfoList = manager.allCellInfo
+            if (cellInfoList != null && cellInfoList.isNotEmpty()) {
+                Log.d("Cell-List-Size: ", cellInfoList.size.toString())
+                when (val cellId = cellInfoList[0].cellIdentity) {
+                    is CellIdentityCdma -> {
+                        return cellId.basestationId.toLong()
+                    }
+                    is CellIdentityGsm -> {
+                        return cellId.cid.toLong()
+                    }
+                    is CellIdentityLte -> {
+                        return cellId.ci.toLong()
+                    }
+                    is CellIdentityNr -> {
+                        return cellId.nci
+                    }
+                    is CellIdentityTdscdma -> {
+                        return cellId.cid.toLong()
+                    }
+                    is CellIdentityWcdma -> {
+                        return cellId.cid.toLong()
+                    }
+                }
+            }
+        } else {
+            when (val location = manager.cellLocation) {
+                is CdmaCellLocation -> {
+                    return location.baseStationId.toLong()
+                }
+                is GsmCellLocation -> {
+                    return location.cid.toLong()
+                }
+            }
+        }
+        return null
     }
 
     private fun isConnected(device: BluetoothDevice): Boolean {
@@ -512,6 +602,15 @@ class AunoaService: Service() {
                             NfcTrigger::class.java
                         )
                     }
+                    "CellTrigger" -> {
+                        val temp = gson.fromJson(
+                            newRule.content.trig.triggerObject,
+                            NfcTrigger::class.java
+                        )
+                        CellWithIdsTrigger(
+                            cellIds = cellUseCases.getCellIdsByRegion(temp.name)
+                        )
+                    }
                     else -> {
                         Log.d("Database-Error", "Unsupported Trigger Type in Database")
                         continue
@@ -542,7 +641,7 @@ class AunoaService: Service() {
     }
 
     @ExperimentalPermissionsApi
-    @SuppressLint("LaunchActivityFromNotification")
+    @SuppressLint("LaunchActivityFromNotification", "UnspecifiedImmutableFlag")
     private fun showNotification() {
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val replyPendingIntent = PendingIntent.getActivity(
@@ -580,7 +679,7 @@ class AunoaService: Service() {
             setOngoing(true)
             setWhen(System.currentTimeMillis())
             setSmallIcon(R.drawable.ic_directions_run_black_24dp)
-            priority = Notification.PRIORITY_LOW
+            priority = IMPORTANCE_LOW
             setContentIntent(replyPendingIntent)
             addAction(
                 0, "REPLY", replyPendingIntent

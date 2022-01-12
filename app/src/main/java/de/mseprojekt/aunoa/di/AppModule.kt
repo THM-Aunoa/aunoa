@@ -7,16 +7,19 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import de.mseprojekt.aunoa.feature_app.data.data_source.AppDatabase
+import de.mseprojekt.aunoa.feature_app.data.repository.CellRepositoryImpl
 import de.mseprojekt.aunoa.feature_app.data.repository.OperationRepositoryImpl
 import de.mseprojekt.aunoa.feature_app.data.repository.RuleRepositoryImpl
 import de.mseprojekt.aunoa.feature_app.data.repository.StateRepositoryImpl
+import de.mseprojekt.aunoa.feature_app.domain.repository.CellRepository
 import de.mseprojekt.aunoa.feature_app.domain.repository.OperationRepository
 import de.mseprojekt.aunoa.feature_app.domain.repository.RuleRepository
 import de.mseprojekt.aunoa.feature_app.domain.repository.StateRepository
-import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.OperationsUseCases
-import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.GetOperations
-import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.GetOperationsById
-import de.mseprojekt.aunoa.feature_app.domain.use_case.activity.InsertOperation
+import de.mseprojekt.aunoa.feature_app.domain.use_case.cell.*
+import de.mseprojekt.aunoa.feature_app.domain.use_case.operation.OperationsUseCases
+import de.mseprojekt.aunoa.feature_app.domain.use_case.operation.GetOperations
+import de.mseprojekt.aunoa.feature_app.domain.use_case.operation.GetOperationsById
+import de.mseprojekt.aunoa.feature_app.domain.use_case.operation.InsertOperation
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.*
 import de.mseprojekt.aunoa.feature_app.domain.use_case.state.GetCurrentState
 import de.mseprojekt.aunoa.feature_app.domain.use_case.state.InsertState
@@ -53,6 +56,12 @@ object AppModule {
         return StateRepositoryImpl(db.stateDao)
     }
 
+    @Provides
+    @Singleton
+    fun provideCellRepository(db: AppDatabase): CellRepository {
+        return CellRepositoryImpl(db.cellDao)
+    }
+
 
     @Provides
     @Singleton
@@ -64,7 +73,8 @@ object AppModule {
             insertRule = InsertRule(repository),
             getRulesWithoutFlow = GetRulesWithoutFlow(repository),
             setActive = SetActive(repository),
-            setEnabled = SetEnabled(repository)
+            setEnabled = SetEnabled(repository),
+            removeRule = RemoveRule(repository),
         )
     }
     @Provides
@@ -83,6 +93,19 @@ object AppModule {
         return StateUseCases(
             getCurrentState = GetCurrentState(repository),
             insertState = InsertState(repository)
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideCellUseCases(repository: CellRepository) : CellUseCases {
+        return CellUseCases(
+            getCellIdsByRegion = GetCellIdsByRegion(repository),
+            insertCell = InsertCell(repository),
+            insertRegion = InsertRegion(repository),
+            removeCell = RemoveCell(repository),
+            removeRegion = RemoveRegion(repository),
+            getRegions = GetRegions(repository)
         )
     }
 }

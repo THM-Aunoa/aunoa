@@ -1,4 +1,4 @@
-package de.mseprojekt.aunoa.feature_app.domain.use_case.activity
+package de.mseprojekt.aunoa.feature_app.domain.use_case.operation
 
 
 data class OperationsUseCases(

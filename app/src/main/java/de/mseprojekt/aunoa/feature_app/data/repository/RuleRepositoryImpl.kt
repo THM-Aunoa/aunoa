@@ -9,10 +9,8 @@ import de.mseprojekt.aunoa.feature_app.domain.model.Rule
 import de.mseprojekt.aunoa.feature_app.domain.model.Trig
 import de.mseprojekt.aunoa.feature_app.domain.repository.RuleRepository
 import kotlinx.coroutines.flow.Flow
-import java.lang.Exception
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
-import java.util.concurrent.Future
 
 class RuleRepositoryImpl(
     private val dao: RuleDao
@@ -50,6 +48,10 @@ class RuleRepositoryImpl(
 
     override suspend fun insertAction(action: Act) {
         return dao.insertAction(action)
+    }
+
+    override suspend fun deleteRule(ruleId: Int) {
+        return dao.deleteRule(ruleId)
     }
 
     override suspend fun setActive(active: Boolean, id: Int){

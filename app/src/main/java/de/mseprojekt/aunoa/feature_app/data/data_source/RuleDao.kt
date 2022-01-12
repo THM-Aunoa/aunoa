@@ -44,4 +44,7 @@ interface RuleDao {
 
     @Query("Update rule SET enabled=:enabled WHERE ruleId = :id")
     suspend fun setEnabled(enabled: Boolean, id: Int)
+
+    @Query("DELETE from rule WHERE ruleId = :ruleId")
+    suspend fun deleteRule(ruleId: Int)
 }

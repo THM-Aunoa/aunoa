@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.navigation.NavType
@@ -18,7 +17,6 @@ import androidx.navigation.navArgument
 import dagger.hilt.android.AndroidEntryPoint
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.RuleUseCases
 import de.mseprojekt.aunoa.feature_app.domain.use_case.state.StateUseCases
 import de.mseprojekt.aunoa.feature_app.presentation.rule_details.RuleDetailsScreen
 import de.mseprojekt.aunoa.feature_app.presentation.operation.ActivityScreen
@@ -52,7 +50,8 @@ class MainActivity : ComponentActivity(
                         Manifest.permission.ACCESS_COARSE_LOCATION,
                         Manifest.permission.ACCESS_NOTIFICATION_POLICY,
                         Manifest.permission.ACCESS_WIFI_STATE,
-                        Manifest.permission.ACCESS_NETWORK_STATE
+                        Manifest.permission.ACCESS_NETWORK_STATE,
+                        Manifest.permission.ACCESS_BACKGROUND_LOCATION
                     )
                 )
                 val manager =
@@ -69,9 +68,9 @@ class MainActivity : ComponentActivity(
                 val navController = rememberNavController()
                 NavHost(
                     navController = navController,
-                    startDestination = Screen.ActivityScreen.route
+                    startDestination = Screen.OperationScreen.route
                 ) {
-                    composable(route = Screen.ActivityScreen.route) {
+                    composable(route = Screen.OperationScreen.route) {
                         ActivityScreen(
                             navController = navController,
                             permissionsState = permissionsState
