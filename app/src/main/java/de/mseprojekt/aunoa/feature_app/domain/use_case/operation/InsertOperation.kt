@@ -1,6 +1,5 @@
 package de.mseprojekt.aunoa.feature_app.domain.use_case.operation
 
-
 import de.mseprojekt.aunoa.feature_app.domain.model.Operation
 import de.mseprojekt.aunoa.feature_app.domain.model.StatusType
 import de.mseprojekt.aunoa.feature_app.domain.repository.OperationRepository

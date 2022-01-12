@@ -3,7 +3,6 @@ package de.mseprojekt.aunoa.feature_app.data.repository
 import de.mseprojekt.aunoa.feature_app.data.data_source.OperationDao
 import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithOperations
 import de.mseprojekt.aunoa.feature_app.domain.model.Operation
-import de.mseprojekt.aunoa.feature_app.domain.model.Rule
 import de.mseprojekt.aunoa.feature_app.domain.repository.OperationRepository
 import kotlinx.coroutines.flow.Flow
 

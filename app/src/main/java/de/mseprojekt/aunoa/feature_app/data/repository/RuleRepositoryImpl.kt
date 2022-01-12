@@ -1,6 +1,5 @@
 package de.mseprojekt.aunoa.feature_app.data.repository
 
-
 import de.mseprojekt.aunoa.feature_app.data.data_source.RuleDao
 import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithActAndTrig
 import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithTags

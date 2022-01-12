@@ -45,14 +45,11 @@ import android.net.wifi.WifiManager
 import android.text.TextUtils
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.*
 import java.lang.reflect.Method
-
 import android.os.Build
 import android.telephony.*
-
 import android.telephony.cdma.CdmaCellLocation
 import android.telephony.gsm.GsmCellLocation
 import de.mseprojekt.aunoa.feature_app.domain.use_case.cell.CellUseCases
-
 
 const val INTENT_COMMAND = "Command"
 const val INTENT_COMMAND_EXIT = "Exit"
@@ -62,8 +59,6 @@ private const val NOTIFICATION_CHANNEL_GENERAL = "Checking"
 private const val CODE_FOREGROUND_SERVICE = 1
 
 private val ACTION_OBJECTS = listOf("VolumeAction")
-
-
 
 @AndroidEntryPoint
 class AunoaService: Service() {
@@ -105,7 +100,6 @@ class AunoaService: Service() {
             showNotification()
             runService()
         }
-
         return START_STICKY
     }
 
@@ -126,7 +120,6 @@ class AunoaService: Service() {
     private fun runService() {
         CoroutineScope(Dispatchers.Main).launch {
             val gson = Gson()
-
             cellUseCases.insertRegion("Test")
             val regions= cellUseCases.getRegions()
             for(region in regions) {
@@ -173,8 +166,6 @@ class AunoaService: Service() {
                 description = "Test123",
                 priority = 10,
             )
-
-
            var xx: TriggerObject = TimeTrigger(
                startTime = LocalTime.now().toSecondOfDay()-120,
                endTime = LocalTime.now().toSecondOfDay()+120,
@@ -194,9 +185,6 @@ class AunoaService: Service() {
                description = "Test123",
                priority = 10,
            )
-
-
-
            var xx: TriggerObject = LocationTrigger(
                latitude = 50.54948477682841,
                longitude = 8.613110570286805,
@@ -216,7 +204,6 @@ class AunoaService: Service() {
                priority = 10,
            )
             */
-
 
             updateRuleList(gson)
             Log.d("a", rules.toString())
@@ -533,7 +520,6 @@ class AunoaService: Service() {
                 }
                 Log.d("Volume-Error", "No rights to change Volume Setting")
                 return false
-
             }
             else -> {
                 Log.d("Database-Error", "Unsupported Action-Type in Database")
@@ -595,7 +581,6 @@ class AunoaService: Service() {
                             BluetoothTrigger::class.java
                         )
                     }
-
                     "NfcTrigger" -> {
                         gson.fromJson(
                             newRule.content.trig.triggerObject,
@@ -655,7 +640,7 @@ class AunoaService: Service() {
                 NotificationChannel(
                     NOTIFICATION_CHANNEL_GENERAL,
                     "Aunoa",
-                    NotificationManager.IMPORTANCE_LOW
+                    IMPORTANCE_LOW
                 )
             ) {
                 enableLights(false)

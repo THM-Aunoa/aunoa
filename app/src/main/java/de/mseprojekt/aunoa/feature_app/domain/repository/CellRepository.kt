@@ -2,7 +2,6 @@ package de.mseprojekt.aunoa.feature_app.domain.repository
 
 import de.mseprojekt.aunoa.feature_app.domain.model.Region
 
-
 interface CellRepository {
 
     fun getCellIdsByRegion(name: String): List<Long>

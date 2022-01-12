@@ -1,6 +1,5 @@
 package de.mseprojekt.aunoa.feature_app.domain.use_case.rule
 
-import android.util.Log
 import com.google.gson.Gson
 import de.mseprojekt.aunoa.feature_app.domain.model.Act
 import de.mseprojekt.aunoa.feature_app.domain.model.Rule
@@ -8,7 +7,6 @@ import de.mseprojekt.aunoa.feature_app.domain.model.Trig
 import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.ActionObject
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TriggerObject
 import de.mseprojekt.aunoa.feature_app.domain.repository.RuleRepository
-import java.util.*
 
 class InsertRule(
     private val repository: RuleRepository
