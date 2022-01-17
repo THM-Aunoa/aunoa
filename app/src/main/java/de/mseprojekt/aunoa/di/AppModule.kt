@@ -105,7 +105,8 @@ object AppModule {
             insertRegion = InsertRegion(repository),
             removeCell = RemoveCell(repository),
             removeRegion = RemoveRegion(repository),
-            getRegions = GetRegions(repository)
+            getRegions = GetRegions(repository),
+            getRegionIdByName = GetRegionIdByName(repository)
         )
     }
 }

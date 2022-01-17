@@ -10,9 +10,8 @@ import de.mseprojekt.aunoa.feature_app.domain.model.Region
 @Dao
 interface CellDao {
 
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCell(cell : Cell)
+    fun insertCell(cell : Cell)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRegion(region : Region)
@@ -28,4 +27,7 @@ interface CellDao {
 
     @Query("SELECT * FROM region")
     fun getRegions(): List<Region>
+
+    @Query("SELECT regionId FROM region WHERE name = :name")
+    fun getRegionIdByName(name: String) : Int
 }

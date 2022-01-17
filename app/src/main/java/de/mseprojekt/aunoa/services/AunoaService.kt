@@ -9,6 +9,7 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.Intent
+import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.IBinder
@@ -21,6 +22,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import android.media.AudioManager
 import android.net.ConnectivityManager
+import android.net.Uri
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
@@ -49,7 +51,10 @@ import android.os.Build
 import android.telephony.*
 import android.telephony.cdma.CdmaCellLocation
 import android.telephony.gsm.GsmCellLocation
+import com.google.android.gms.common.internal.FallbackServiceBroker
+import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.SpotifyAction
 import de.mseprojekt.aunoa.feature_app.domain.use_case.cell.CellUseCases
+import java.time.LocalDateTime
 
 const val INTENT_COMMAND = "Command"
 const val INTENT_COMMAND_EXIT = "Exit"
@@ -58,7 +63,7 @@ const val INTENT_COMMAND_START = "Start"
 private const val NOTIFICATION_CHANNEL_GENERAL = "Checking"
 private const val CODE_FOREGROUND_SERVICE = 1
 
-private val ACTION_OBJECTS = listOf("VolumeAction")
+private val ACTION_OBJECTS = listOf("VolumeAction", "SpotifyAction")
 
 @AndroidEntryPoint
 class AunoaService: Service() {
@@ -66,9 +71,14 @@ class AunoaService: Service() {
         LocationServices.getFusedLocationProviderClient(this)
     }
     private var requestLocation = false
+    private var requestCellId = false
     private var rules: ArrayList<ArrayList<UnzippedRule>> = ArrayList()
 
     private val mutex = Mutex()
+
+    private var scanMode = false
+    private var scanRegion = -1
+    private var scanUntil : LocalDateTime = LocalDateTime.now()
 
     @Inject
     lateinit var cellUseCases: CellUseCases
@@ -81,6 +91,8 @@ class AunoaService: Service() {
 
     private var lastKnownLat: Double? = null
     private var lastKnownLon: Double? = null
+
+    private var currentCellId : Long? = null
 
     private var cancellationTokenSource = CancellationTokenSource()
     private var isrunning = false
@@ -120,25 +132,39 @@ class AunoaService: Service() {
     private fun runService() {
         CoroutineScope(Dispatchers.Main).launch {
             val gson = Gson()
-            cellUseCases.insertRegion("Test")
-            val regions= cellUseCases.getRegions()
-            for(region in regions) {
-                if (region.name=="Test") {
-                    region.regionId?.let {
-                        cellUseCases.insertCell(it, 27945)
-                        cellUseCases.insertCell(it,47945)
-                        cellUseCases.insertCell(it,19946778)
-                        cellUseCases.insertCell(it,91)
-                    }
-                }
-            }
+            val telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+            val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+
+            delay(10000)
+            /*
 
             var xx: TriggerObject = CellTrigger(
-                name = "Test"
+                name = "Home"
+            )
+            var yy: ActionObject = SpotifyAction(
+                name = "Test",
+                playlist = "37i9dQZF1DXaTIN6XNquoW"
+            )
+            ruleUseCases.insertRule(
+                trigger = xx,
+                action = yy,
+                triggerObjectName = "CellTrigger",
+                actionObjectName = "SpotifyAction",
+                title = "Test123",
+                description = "Test123",
+                priority = 10,
+            )
+
+
+
+            cellUseCases.insertRegion("Home")
+
+            var xx: TriggerObject = CellTrigger(
+                name = "Home"
             )
             var yy: ActionObject = VolumeAction(
-                activateVolume = 0,
-                deactivateVolume = 2
+                activateVolume = 2,
+                deactivateVolume = 0
             )
             ruleUseCases.insertRule(
                 trigger = xx,
@@ -149,7 +175,11 @@ class AunoaService: Service() {
                 description = "Test123",
                 priority = 10,
             )
-            /*
+
+            scanRegion = cellUseCases.getRegionIdByName("Home")
+            scanUntil = LocalDateTime.now().plusHours(5)
+            scanMode = true
+
             var xx: TriggerObject = BluetoothTrigger(
                 name = "abc"
             )
@@ -208,19 +238,11 @@ class AunoaService: Service() {
             updateRuleList(gson)
             Log.d("a", rules.toString())
             if (requestLocation) {
-                if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-                    == PackageManager.PERMISSION_GRANTED &&
-                    checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
-                    == PackageManager.PERMISSION_GRANTED) {
-                    requestCurrentLocation().addOnCompleteListener { task: Task<Location> ->
-                        if (task.isSuccessful && task.result != null) {
-                            lastKnownLat = task.result.latitude
-                            lastKnownLon = task.result.longitude
-                            Log.d("Location", "Location update received")
-                        }
-                    }
-                    delay(20000)
-                }
+                requestLocation()
+                delay(20000)
+            }
+            if (requestCellId){
+                requestCellId(telephonyManager)
             }
             mutex.withLock {
                 for (ruleCategories in rules) {
@@ -231,7 +253,7 @@ class AunoaService: Service() {
                             var aResult = true
                             if (!activeRuleFound) {
                                 Log.d("Action", "Action will be performed (Deactivation)")
-                                aResult = performAction(rule.action, true)
+                                aResult = performAction(rule.action,audioManager, true)
                                 rule.rule.ruleId?.let {
                                     operationsUseCases.insertOperation(
                                         it,
@@ -247,7 +269,7 @@ class AunoaService: Service() {
                             var aResult = true
                             if (!activeRuleFound) {
                                 Log.d("Action", "Action will be performed (Activation)")
-                                aResult = performAction(rule.action)
+                                aResult = performAction(rule.action, audioManager)
                                 rule.rule.ruleId?.let {
                                     operationsUseCases.insertOperation(
                                         it,
@@ -267,19 +289,11 @@ class AunoaService: Service() {
             delay(delay)
             while (isrunning) {
                 if (requestLocation) {
-                    if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-                        == PackageManager.PERMISSION_GRANTED &&
-                        checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
-                        == PackageManager.PERMISSION_GRANTED) {
-                        requestCurrentLocation().addOnCompleteListener { task: Task<Location> ->
-                            if (task.isSuccessful && task.result != null) {
-                                lastKnownLat = task.result.latitude
-                                lastKnownLon = task.result.longitude
-                                Log.d("Location", "Location update received")
-                            }
-                        }
-                        delay(20000)
-                    }
+                    requestLocation()
+                    delay(20000)
+                }
+                if (requestCellId){
+                    requestCellId(telephonyManager)
                 }
                 mutex.withLock {
                     for (ruleCategories in rules) {
@@ -289,7 +303,7 @@ class AunoaService: Service() {
                                     val tResult = testTrigger(rule.trigger, true)
                                     if (tResult) {
                                         Log.d("Action", "Action will be performed (Deactivation)")
-                                        val aResult = performAction(rule.action, true)
+                                        val aResult = performAction(rule.action,audioManager, true)
                                         rule.rule.ruleId?.let {
                                             operationsUseCases.insertOperation(
                                                 it,
@@ -312,7 +326,7 @@ class AunoaService: Service() {
                                     val tResult = testTrigger(rule.trigger)
                                     if (tResult) {
                                         Log.d("Action", "Action will be performed (Activation)")
-                                        val aResult = performAction(rule.action)
+                                        val aResult = performAction(rule.action, audioManager)
                                         rule.rule.ruleId?.let {
                                             operationsUseCases.insertOperation(
                                                 it,
@@ -426,23 +440,26 @@ class AunoaService: Service() {
                 return false
             }
             is CellWithIdsTrigger ->{
-                if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-                    == PackageManager.PERMISSION_GRANTED &&
-                    checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
-                    == PackageManager.PERMISSION_GRANTED) {
-                    val manager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-                    val currentCellId= getCellId(manager)
-                    if (currentCellId==null){
-                        Log.d("Cell-Error", "Cant read your cell Information")
-                    }else {
-                        if (trigger.cellIds.contains(currentCellId)){
-                            return !reverse
+                if (currentCellId==null){
+                    Log.d("Cell-Error", "Cant read your cell Information")
+                    return false
+                }else {
+                    if (scanMode){
+                        if (scanUntil > LocalDateTime.now()) {
+                            if (!trigger.cellIds.contains(currentCellId) && scanRegion == trigger.id) {
+                                trigger.cellIds.add(currentCellId!!)
+                                cellUseCases.insertCell(scanRegion, currentCellId!!)
+                                Log.d("Updated Cells", "Add Cell $currentCellId into $scanRegion")
+                            }
+                        }else{
+                            scanMode = false
                         }
-                        return reverse
                     }
+                    if (trigger.cellIds.contains(currentCellId)){
+                        return !reverse
+                    }
+                    return reverse
                 }
-                Log.d("Cell-Error", "No Permissions to read Current Cell Information")
-                return false
             }
             is NfcTrigger ->{
                 Log.d("Nfc-Error", "Not yet implemented")
@@ -454,6 +471,172 @@ class AunoaService: Service() {
             }
         }
     }
+
+    private fun performAction(action: ActionObject, audioManager: AudioManager,reverse: Boolean = false): Boolean{
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        when(action){
+            is VolumeAction -> {
+                if (manager.isNotificationPolicyAccessGranted) {
+                    when (if (reverse) action.deactivateVolume else action.activateVolume) {
+                        0 -> audioManager.ringerMode = AudioManager.RINGER_MODE_SILENT
+                        1 -> audioManager.ringerMode = AudioManager.RINGER_MODE_VIBRATE
+                        2 -> audioManager.ringerMode = AudioManager.RINGER_MODE_NORMAL
+                    }
+                    return true
+                }
+                Log.d("Volume-Error", "No rights to change Volume Setting")
+                return false
+            }
+            is SpotifyAction ->{
+                val spotifyIntent = Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("spotify:playlist:"+action.playlist+":play")
+                )
+                spotifyIntent.addFlags(FLAG_ACTIVITY_NEW_TASK)
+                Log.d("s", "opening spotify")
+                startActivity(spotifyIntent)
+                return true
+            }
+            else -> {
+                Log.d("Database-Error", "Unsupported Action-Type in Database")
+                return false
+            }
+        }
+    }
+
+    suspend fun updateRuleList(gson: Gson){
+        val newRules = ruleUseCases.getRulesWithoutFlow()
+        mutex.withLock {
+            rules = ArrayList()
+            requestLocation = false
+            requestCellId = false
+            for (i in ACTION_OBJECTS.indices) {
+                rules.add(ArrayList())
+            }
+            for (newRule in newRules) {
+                if (newRule.content.trig.triggerType == "LocationTrigger") {
+                    requestLocation = true
+                }
+                if (newRule.content.trig.triggerType == "CellTrigger") {
+                    requestCellId = true
+                }
+                var index = -1
+                for (i in ACTION_OBJECTS.indices) {
+                    if (ACTION_OBJECTS[i] == newRule.content.act.actionType) {
+                        index = i
+                    }
+                }
+                if (index == -1) {
+                    Log.d("Database-Error", "Unsupported Action Type in Database")
+                    return
+                }
+                val act: ActionObject = when (newRule.content.act.actionType) {
+                    "VolumeAction" -> {
+                        gson.fromJson(newRule.content.act.actionObject, VolumeAction::class.java)
+                    }
+                    "SpotifyAction" ->{
+                        gson.fromJson(newRule.content.act.actionObject, SpotifyAction::class.java)
+                    }
+                    else -> {
+                        Log.d("Database-Error", "Unsupported Action Type in Database")
+                        continue
+                    }
+                }
+                val trig: TriggerObject = when (newRule.content.trig.triggerType) {
+                    "TimeTrigger" -> {
+                        gson.fromJson(newRule.content.trig.triggerObject, TimeTrigger::class.java)
+                    }
+                    "LocationTrigger" -> {
+                        gson.fromJson(
+                            newRule.content.trig.triggerObject,
+                            LocationTrigger::class.java
+                        )
+                    }
+                    "WifiTrigger" ->{
+                        gson.fromJson(
+                            newRule.content.trig.triggerObject,
+                            WifiTrigger::class.java
+                        )
+                    }
+                    "BluetoothTrigger" -> {
+                        gson.fromJson(
+                            newRule.content.trig.triggerObject,
+                            BluetoothTrigger::class.java
+                        )
+                    }
+                    "NfcTrigger" -> {
+                        gson.fromJson(
+                            newRule.content.trig.triggerObject,
+                            NfcTrigger::class.java
+                        )
+                    }
+                    "CellTrigger" -> {
+                        val temp = gson.fromJson(
+                            newRule.content.trig.triggerObject,
+                            NfcTrigger::class.java
+                        )
+                        val list = mutableListOf<Long>()
+                        list.addAll(cellUseCases.getCellIdsByRegion(temp.name))
+                        CellWithIdsTrigger(
+                            cellIds = list,
+                            id = cellUseCases.getRegionIdByName(temp.name)
+                        )
+                    }
+                    else -> {
+                        Log.d("Database-Error", "Unsupported Trigger Type in Database")
+                        continue
+                    }
+                }
+
+                val ruleToAppend = UnzippedRule(
+                    rule = newRule.rule,
+                    action = act,
+                    trigger = trig
+                )
+                if (rules[index].size == 0) {
+                    rules[index].add(ruleToAppend)
+                    continue
+                }
+                if (newRule.rule.priority <= rules[index][rules[index].size - 1].rule.priority) {
+                    rules[index].add(rules[index].size, ruleToAppend)
+                    continue
+                }
+                for (i in 0 until rules[index].size) {
+                    if (newRule.rule.priority > rules[index][i].rule.priority) {
+                        rules[index].add(i, ruleToAppend)
+                        break
+                    }
+                }
+            }
+        }
+    }
+
+    private fun requestLocation(){
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED &&
+            checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED) {
+            requestCurrentLocation().addOnCompleteListener { task: Task<Location> ->
+                if (task.isSuccessful && task.result != null) {
+                    lastKnownLat = task.result.latitude
+                    lastKnownLon = task.result.longitude
+                    Log.d("Location", "Location update received")
+                }
+            }
+        }
+    }
+
+    private fun requestCellId(manager : TelephonyManager){
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED &&
+            checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED) {
+            currentCellId = getCellId(manager)
+        }else {
+            Log.d("Cell-Error", "No Permissions to read Current Cell Information")
+        }
+    }
+
 
     @SuppressLint("MissingPermission")
     private fun getCellId(manager: TelephonyManager): Long? {
@@ -501,127 +684,6 @@ class AunoaService: Service() {
             m.invoke(device) as Boolean
         } catch (e: Exception) {
             throw IllegalStateException(e)
-        }
-    }
-
-
-    private fun performAction(action: ActionObject, reverse: Boolean = false): Boolean{
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        when(action){
-            is VolumeAction -> {
-                if (manager.isNotificationPolicyAccessGranted) {
-                    val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-                    when (if (reverse) action.deactivateVolume else action.activateVolume) {
-                        0 -> audioManager.ringerMode = AudioManager.RINGER_MODE_SILENT
-                        1 -> audioManager.ringerMode = AudioManager.RINGER_MODE_VIBRATE
-                        2 -> audioManager.ringerMode = AudioManager.RINGER_MODE_NORMAL
-                    }
-                    return true
-                }
-                Log.d("Volume-Error", "No rights to change Volume Setting")
-                return false
-            }
-            else -> {
-                Log.d("Database-Error", "Unsupported Action-Type in Database")
-                return false
-            }
-        }
-    }
-
-    suspend fun updateRuleList(gson: Gson){
-        val newRules = ruleUseCases.getRulesWithoutFlow()
-        mutex.withLock {
-            rules = ArrayList()
-            requestLocation = false
-            for (i in ACTION_OBJECTS.indices) {
-                rules.add(ArrayList())
-            }
-            for (newRule in newRules) {
-                if (newRule.content.trig.triggerType == "LocationTrigger") {
-                    requestLocation = true
-                }
-                var index = -1
-                for (i in ACTION_OBJECTS.indices) {
-                    if (ACTION_OBJECTS[i] == newRule.content.act.actionType) {
-                        index = i
-                    }
-                }
-                if (index == -1) {
-                    Log.d("Database-Error", "Unsupported Action Type in Database")
-                    return
-                }
-                val act: ActionObject = when (newRule.content.act.actionType) {
-                    "VolumeAction" -> {
-                        gson.fromJson(newRule.content.act.actionObject, VolumeAction::class.java)
-                    }
-                    else -> {
-                        Log.d("Database-Error", "Unsupported Action Type in Database")
-                        continue
-                    }
-                }
-                val trig: TriggerObject = when (newRule.content.trig.triggerType) {
-                    "TimeTrigger" -> {
-                        gson.fromJson(newRule.content.trig.triggerObject, TimeTrigger::class.java)
-                    }
-                    "LocationTrigger" -> {
-                        gson.fromJson(
-                            newRule.content.trig.triggerObject,
-                            LocationTrigger::class.java
-                        )
-                    }
-                    "WifiTrigger" ->{
-                        gson.fromJson(
-                            newRule.content.trig.triggerObject,
-                            WifiTrigger::class.java
-                        )
-                    }
-                    "BluetoothTrigger" -> {
-                        gson.fromJson(
-                            newRule.content.trig.triggerObject,
-                            BluetoothTrigger::class.java
-                        )
-                    }
-                    "NfcTrigger" -> {
-                        gson.fromJson(
-                            newRule.content.trig.triggerObject,
-                            NfcTrigger::class.java
-                        )
-                    }
-                    "CellTrigger" -> {
-                        val temp = gson.fromJson(
-                            newRule.content.trig.triggerObject,
-                            NfcTrigger::class.java
-                        )
-                        CellWithIdsTrigger(
-                            cellIds = cellUseCases.getCellIdsByRegion(temp.name)
-                        )
-                    }
-                    else -> {
-                        Log.d("Database-Error", "Unsupported Trigger Type in Database")
-                        continue
-                    }
-                }
-
-                val ruleToAppend = UnzippedRule(
-                    rule = newRule.rule,
-                    action = act,
-                    trigger = trig
-                )
-                if (rules[index].size == 0) {
-                    rules[index].add(ruleToAppend)
-                    continue
-                }
-                if (newRule.rule.priority <= rules[index][rules[index].size - 1].rule.priority) {
-                    rules[index].add(rules[index].size, ruleToAppend)
-                    continue
-                }
-                for (i in 0 until rules[index].size) {
-                    if (newRule.rule.priority > rules[index][i].rule.priority) {
-                        rules[index].add(i, ruleToAppend)
-                        break
-                    }
-                }
-            }
         }
     }
 

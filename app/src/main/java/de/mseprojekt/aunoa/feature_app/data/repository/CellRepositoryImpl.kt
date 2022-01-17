@@ -18,6 +18,14 @@ class CellRepositoryImpl (
         return future!!.get()
     }
 
+    override fun getRegionIdByName(name: String): Int {
+        val callable = Callable{ dao.getRegionIdByName(name) }
+
+        val future = Executors.newSingleThreadExecutor().submit(callable)
+
+        return future!!.get()
+    }
+
     override suspend fun insertRegion(name: String) {
         dao.insertRegion(Region(name = name))
     }
@@ -26,8 +34,12 @@ class CellRepositoryImpl (
         dao.deleteRegion(id)
     }
 
-    override suspend fun insertCell(regionId: Int, cellId: Long) {
-        dao.insertCell(Cell(regionId = regionId, cellId = cellId))
+    override fun insertCell(regionId: Int, cellId: Long) {
+        val callable = Callable{ dao.insertCell(Cell(regionId = regionId, cellId = cellId)) }
+
+        val future = Executors.newSingleThreadExecutor().submit(callable)
+
+        return future!!.get()
     }
 
     override suspend fun deleteCell(cellId: Long) {

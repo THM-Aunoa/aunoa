@@ -6,5 +6,6 @@ data class CellUseCases(
     val insertRegion: InsertRegion,
     val removeCell: RemoveCell,
     val removeRegion: RemoveRegion,
-    val getRegions: GetRegions
+    val getRegions: GetRegions,
+    val getRegionIdByName: GetRegionIdByName
 )
