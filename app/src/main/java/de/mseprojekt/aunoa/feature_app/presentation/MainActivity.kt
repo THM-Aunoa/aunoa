@@ -50,6 +50,7 @@ class MainActivity : ComponentActivity(
                         Manifest.permission.ACCESS_NOTIFICATION_POLICY,
                         Manifest.permission.ACCESS_WIFI_STATE,
                         Manifest.permission.ACCESS_NETWORK_STATE,
+                        Manifest.permission.INTERNET,
                         Manifest.permission.ACCESS_BACKGROUND_LOCATION
                     )
                 )

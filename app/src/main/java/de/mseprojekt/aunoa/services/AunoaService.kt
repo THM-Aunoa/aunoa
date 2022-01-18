@@ -9,7 +9,6 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.Intent
-import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.IBinder
@@ -22,7 +21,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import android.media.AudioManager
 import android.net.ConnectivityManager
-import android.net.Uri
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
@@ -51,13 +49,12 @@ import android.os.Build
 import android.telephony.*
 import android.telephony.cdma.CdmaCellLocation
 import android.telephony.gsm.GsmCellLocation
-import com.google.android.gms.common.internal.FallbackServiceBroker
 import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.SpotifyAction
 import de.mseprojekt.aunoa.feature_app.domain.use_case.cell.CellUseCases
 import java.time.LocalDateTime
 
 import com.spotify.android.appremote.api.ConnectionParams;
-import com.spotify.android.appremote.api.Connector;
+import com.spotify.android.appremote.api.Connector.ConnectionListener
 import com.spotify.android.appremote.api.SpotifyAppRemote;
 
 const val INTENT_COMMAND = "Command"
@@ -71,11 +68,14 @@ private val ACTION_OBJECTS = listOf("VolumeAction", "SpotifyAction")
 
 @AndroidEntryPoint
 class AunoaService: Service() {
+
     private val fusedLocationClient: FusedLocationProviderClient by lazy {
         LocationServices.getFusedLocationProviderClient(this)
     }
     private var requestLocation = false
     private var requestCellId = false
+    private var useSpotify = false
+
     private var rules: ArrayList<ArrayList<UnzippedRule>> = ArrayList()
 
     private val mutex = Mutex()
@@ -102,7 +102,12 @@ class AunoaService: Service() {
     private var isrunning = false
     private var delay : Long = 10000L // 60000L = 1 minute
 
+    private val clientId = "eae6bddb30b249fface969dc4af5efba"
+    private val redirectUri = "http://localhost:8080"
+    private var spotifyAppRemote: SpotifyAppRemote? = null
+
     override fun onBind(p0: Intent?): IBinder? = null
+
 
     @ExperimentalPermissionsApi
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
@@ -114,13 +119,15 @@ class AunoaService: Service() {
         if (command == INTENT_COMMAND_START && !this.isrunning){
             this.isrunning = true
             showNotification()
-            runService()
+            runService(this)
         }
+
         return START_STICKY
     }
 
     private fun stopService() {
         this.isrunning = false
+        exitSpotify()
         stopForeground(true)
         stopSelf()
     }
@@ -133,14 +140,15 @@ class AunoaService: Service() {
         )
     }
 
-    private fun runService() {
+    private fun runService(service: AunoaService) {
         CoroutineScope(Dispatchers.Main).launch {
             val gson = Gson()
             val telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
             val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
-            delay(10000)
             /*
+            cellUseCases.insertRegion("Home")
+            cellUseCases.insertCell(cellUseCases.getRegionIdByName("Home"), 91)
 
             var xx: TriggerObject = CellTrigger(
                 name = "Home"
@@ -160,8 +168,6 @@ class AunoaService: Service() {
             )
 
 
-
-            cellUseCases.insertRegion("Home")
 
             var xx: TriggerObject = CellTrigger(
                 name = "Home"
@@ -492,14 +498,7 @@ class AunoaService: Service() {
                 return false
             }
             is SpotifyAction ->{
-                val spotifyIntent = Intent(
-                    Intent.ACTION_VIEW,
-                    Uri.parse("spotify:playlist:"+action.playlist+":play")
-                )
-                spotifyIntent.addFlags(FLAG_ACTIVITY_NEW_TASK)
-                Log.d("s", "opening spotify")
-                startActivity(spotifyIntent)
-                return true
+                return play(action.playlist)
             }
             else -> {
                 Log.d("Database-Error", "Unsupported Action-Type in Database")
@@ -510,10 +509,12 @@ class AunoaService: Service() {
 
     suspend fun updateRuleList(gson: Gson){
         val newRules = ruleUseCases.getRulesWithoutFlow()
+        val oldSpotify = useSpotify
         mutex.withLock {
             rules = ArrayList()
             requestLocation = false
             requestCellId = false
+            useSpotify = false
             for (i in ACTION_OBJECTS.indices) {
                 rules.add(ArrayList())
             }
@@ -523,6 +524,9 @@ class AunoaService: Service() {
                 }
                 if (newRule.content.trig.triggerType == "CellTrigger") {
                     requestCellId = true
+                }
+                if (newRule.content.act.actionType == "SpotifyAction") {
+                    useSpotify = true
                 }
                 var index = -1
                 for (i in ACTION_OBJECTS.indices) {
@@ -612,6 +616,13 @@ class AunoaService: Service() {
                     }
                 }
             }
+        }
+        if (oldSpotify && !useSpotify){
+            exitSpotify()
+        }
+        if (!oldSpotify && useSpotify){
+            startSpotify(this)
+            delay(10000)
         }
     }
 
@@ -740,5 +751,38 @@ class AunoaService: Service() {
             )
             startForeground(CODE_FOREGROUND_SERVICE, build())
         }
+    }
+    private fun play(song: String): Boolean {
+        spotifyAppRemote?.let {
+            val playlistURI = "spotify:playlist:$song"
+            it.playerApi.play(playlistURI)
+            return true
+        }
+        return false
+    }
+
+    private fun startSpotify(service: AunoaService){
+        val connectionParams = ConnectionParams.Builder(clientId)
+            .setRedirectUri(redirectUri)
+            .showAuthView(true)
+            .build()
+
+        SpotifyAppRemote.connect(service, connectionParams, object : ConnectionListener {
+            override fun onConnected(appRemote: SpotifyAppRemote) {
+                spotifyAppRemote = appRemote
+                Log.d("Spotify", "Connected!")
+            }
+
+            override fun onFailure(throwable: Throwable) {
+                Log.e("Spotify-Error", throwable.message, throwable)
+            }
+        })
+    }
+
+    private fun exitSpotify() {
+        spotifyAppRemote?.let {
+            SpotifyAppRemote.disconnect(it)
+        }
+
     }
 }
