@@ -56,6 +56,7 @@ import java.time.LocalDateTime
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector.ConnectionListener
 import com.spotify.android.appremote.api.SpotifyAppRemote;
+import java.time.format.DateTimeFormatter
 
 const val INTENT_COMMAND = "Command"
 const val INTENT_COMMAND_EXIT = "Exit"
@@ -93,6 +94,8 @@ class AunoaService: Service() {
     @Inject
     lateinit var operationsUseCases: OperationsUseCases
 
+    lateinit var curNotificationBuilder: NotificationCompat.Builder
+
     private var lastKnownLat: Double? = null
     private var lastKnownLon: Double? = null
 
@@ -119,7 +122,7 @@ class AunoaService: Service() {
         if (command == INTENT_COMMAND_START && !this.isrunning){
             this.isrunning = true
             showNotification()
-            runService(this)
+            runService()
         }
 
         return START_STICKY
@@ -140,7 +143,7 @@ class AunoaService: Service() {
         )
     }
 
-    private fun runService(service: AunoaService) {
+    private fun runService() {
         CoroutineScope(Dispatchers.Main).launch {
             val gson = Gson()
             val telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
@@ -270,6 +273,9 @@ class AunoaService: Service() {
                                         aResult
                                     )
                                 }
+                                if (aResult){
+                                    updateServiceText(rule.action, false)
+                                }
                             }
                             if (aResult) {
                                 rule.rule.ruleId?.let { ruleUseCases.setActive(false, it) }
@@ -285,6 +291,9 @@ class AunoaService: Service() {
                                         it,
                                         aResult
                                     )
+                                }
+                                if (aResult){
+                                    updateServiceText(rule.action, true)
                                 }
                             }
                             activeRuleFound = true
@@ -328,6 +337,7 @@ class AunoaService: Service() {
                                                 )
                                             }
                                             rule.rule.active = false
+                                            updateServiceText(rule.action, false)
                                         }
                                     } else {
                                         break
@@ -351,6 +361,7 @@ class AunoaService: Service() {
                                                 )
                                             }
                                             rule.rule.active = true
+                                            updateServiceText(rule.action, true)
                                             break
                                         }
                                     }
@@ -750,8 +761,44 @@ class AunoaService: Service() {
                 0, "ACHIEVE", replyPendingIntent
             )
             startForeground(CODE_FOREGROUND_SERVICE, build())
+            curNotificationBuilder = this
         }
     }
+
+    private fun updateServiceText(action: ActionObject, activation: Boolean = true){
+        val localDate = LocalDateTime.now() //For reference
+        val formatter = DateTimeFormatter.ofPattern("dd-MM HH:mm")
+        val formattedString = localDate.format(formatter)
+        val text = when(action){
+            is VolumeAction ->{
+                if (activation) {
+                    "Volume-Action was performed at: $formattedString"
+                } else {
+                    "Volume-Deactivation was performed at: $formattedString"
+                }
+            }
+
+            is SpotifyAction ->{
+                if (activation) {
+                    "Spotify-Action was performed at: $formattedString"
+                } else {
+                    "Spotify-Deactivation was performed at: $formattedString"
+                }
+            }
+            else ->{
+                if (activation) {
+                    "Action was performed at: $formattedString"
+                } else {
+                    "Deactivation was performed at: $formattedString"
+                }
+            }
+        }
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE)
+                as NotificationManager
+        val notification = curNotificationBuilder.setContentText(text)
+        notificationManager.notify(CODE_FOREGROUND_SERVICE, notification.build())
+    }
+
     private fun play(song: String): Boolean {
         spotifyAppRemote?.let {
             val playlistURI = "spotify:playlist:$song"
