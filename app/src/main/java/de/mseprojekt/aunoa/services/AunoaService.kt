@@ -56,6 +56,7 @@ import java.time.LocalDateTime
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector.ConnectionListener
 import com.spotify.android.appremote.api.SpotifyAppRemote;
+import java.time.DayOfWeek
 import java.time.format.DateTimeFormatter
 
 const val INTENT_COMMAND = "Command"
@@ -149,28 +150,8 @@ class AunoaService: Service() {
             val telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
             val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
-            /*
             cellUseCases.insertRegion("Home")
             cellUseCases.insertCell(cellUseCases.getRegionIdByName("Home"), 91)
-
-            var xx: TriggerObject = CellTrigger(
-                name = "Home"
-            )
-            var yy: ActionObject = SpotifyAction(
-                name = "Test",
-                playlist = "37i9dQZF1DXaTIN6XNquoW"
-            )
-            ruleUseCases.insertRule(
-                trigger = xx,
-                action = yy,
-                triggerObjectName = "CellTrigger",
-                actionObjectName = "SpotifyAction",
-                title = "Test123",
-                description = "Test123",
-                priority = 10,
-            )
-
-
 
             var xx: TriggerObject = CellTrigger(
                 name = "Home"
@@ -184,38 +165,22 @@ class AunoaService: Service() {
                 action = yy,
                 triggerObjectName = "CellTrigger",
                 actionObjectName = "VolumeAction",
-                title = "Test123",
-                description = "Test123",
-                priority = 10,
+                title = "Cell-Trigger",
+                description = "Zuhause Ton an",
+                priority = 9,
             )
 
             scanRegion = cellUseCases.getRegionIdByName("Home")
-            scanUntil = LocalDateTime.now().plusHours(5)
+            scanUntil = LocalDateTime.now().plusHours(12)
             scanMode = true
 
-            var xx: TriggerObject = BluetoothTrigger(
-                name = "abc"
-            )
-            var yy: ActionObject = VolumeAction(
-                activateVolume = 0,
-                deactivateVolume = 2
-            )
-            ruleUseCases.insertRule(
-                trigger = xx,
-                action = yy,
-                triggerObjectName = "BluetoothTrigger",
-                actionObjectName = "VolumeAction",
-                title = "Test123",
-                description = "Test123",
-                priority = 10,
-            )
-           var xx: TriggerObject = TimeTrigger(
-               startTime = LocalTime.now().toSecondOfDay()-120,
-               endTime = LocalTime.now().toSecondOfDay()+120,
-               startWeekday = LocalDate.now().dayOfWeek,
-               endWeekday = LocalDate.now().dayOfWeek,
+           xx = TimeTrigger(
+               startTime = 79200,
+               endTime = 28800,
+               startWeekday = DayOfWeek.SUNDAY,
+               endWeekday = DayOfWeek.MONDAY,
            )
-           var yy: ActionObject = VolumeAction(
+           yy = VolumeAction(
                activateVolume = 0,
                deactivateVolume = 2
            )
@@ -224,29 +189,124 @@ class AunoaService: Service() {
                action = yy,
                triggerObjectName = "TimeTrigger",
                actionObjectName = "VolumeAction",
-               title = "Test123",
-               description = "Test123",
+               title = "Time-Trigger",
+               description = "Nachts auf lautlos",
                priority = 10,
            )
-           var xx: TriggerObject = LocationTrigger(
-               latitude = 50.54948477682841,
-               longitude = 8.613110570286805,
-               radius = 400.0
-           )
-           var yy: ActionObject = VolumeAction(
-               activateVolume = 2,
-               deactivateVolume = 0
-           )
-           ruleUseCases.insertRule(
-               trigger = xx,
-               action = yy,
-               triggerObjectName = "LocationTrigger",
-               actionObjectName = "VolumeAction",
-               title = "Test123",
-               description = "Test123",
-               priority = 10,
-           )
-            */
+            xx = TimeTrigger(
+                startTime = 79200,
+                endTime = 28800,
+                startWeekday = DayOfWeek.MONDAY,
+                endWeekday = DayOfWeek.TUESDAY,
+            )
+            yy = VolumeAction(
+                activateVolume = 0,
+                deactivateVolume = 2
+            )
+            ruleUseCases.insertRule(
+                trigger = xx,
+                action = yy,
+                triggerObjectName = "TimeTrigger",
+                actionObjectName = "VolumeAction",
+                title = "Time-Trigger",
+                description = "Nachts auf lautlos",
+                priority = 10,
+            )
+            xx = TimeTrigger(
+                startTime = 79200,
+                endTime = 28800,
+                startWeekday = DayOfWeek.TUESDAY,
+                endWeekday = DayOfWeek.WEDNESDAY,
+            )
+            yy = VolumeAction(
+                activateVolume = 0,
+                deactivateVolume = 2
+            )
+            ruleUseCases.insertRule(
+                trigger = xx,
+                action = yy,
+                triggerObjectName = "TimeTrigger",
+                actionObjectName = "VolumeAction",
+                title = "Time-Trigger",
+                description = "Nachts auf lautlos",
+                priority = 10,
+            )
+            xx = TimeTrigger(
+                startTime = 79200,
+                endTime = 28800,
+                startWeekday = DayOfWeek.WEDNESDAY,
+                endWeekday = DayOfWeek.THURSDAY,
+            )
+            yy = VolumeAction(
+                activateVolume = 0,
+                deactivateVolume = 2
+            )
+            ruleUseCases.insertRule(
+                trigger = xx,
+                action = yy,
+                triggerObjectName = "TimeTrigger",
+                actionObjectName = "VolumeAction",
+                title = "Time-Trigger",
+                description = "Nachts auf lautlos",
+                priority = 10,
+            )
+            xx = TimeTrigger(
+                startTime = 79200,
+                endTime = 28800,
+                startWeekday = DayOfWeek.THURSDAY,
+                endWeekday = DayOfWeek.FRIDAY,
+            )
+            yy = VolumeAction(
+                activateVolume = 0,
+                deactivateVolume = 2
+            )
+            ruleUseCases.insertRule(
+                trigger = xx,
+                action = yy,
+                triggerObjectName = "TimeTrigger",
+                actionObjectName = "VolumeAction",
+                title = "Time-Trigger",
+                description = "Nachts auf lautlos",
+                priority = 10,
+            )
+            xx = TimeTrigger(
+                startTime = 85800,
+                endTime = 32400,
+                startWeekday = DayOfWeek.FRIDAY,
+                endWeekday = DayOfWeek.SATURDAY,
+            )
+            yy = VolumeAction(
+                activateVolume = 0,
+                deactivateVolume = 2
+            )
+            ruleUseCases.insertRule(
+                trigger = xx,
+                action = yy,
+                triggerObjectName = "TimeTrigger",
+                actionObjectName = "VolumeAction",
+                title = "Time-Trigger",
+                description = "Nachts auf lautlos",
+                priority = 10,
+            )
+            xx = TimeTrigger(
+                startTime = 85800,
+                endTime = 32400,
+                startWeekday = DayOfWeek.SATURDAY,
+                endWeekday = DayOfWeek.SUNDAY,
+            )
+            yy = VolumeAction(
+                activateVolume = 0,
+                deactivateVolume = 2
+            )
+            ruleUseCases.insertRule(
+                trigger = xx,
+                action = yy,
+                triggerObjectName = "TimeTrigger",
+                actionObjectName = "VolumeAction",
+                title = "Time-Trigger",
+                description = "Nachts auf lautlos",
+                priority = 10,
+            )
 
             updateRuleList(gson)
             Log.d("a", rules.toString())
