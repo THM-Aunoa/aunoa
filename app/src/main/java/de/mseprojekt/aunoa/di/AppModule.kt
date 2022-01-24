@@ -23,6 +23,7 @@ import de.mseprojekt.aunoa.feature_app.domain.use_case.operation.InsertOperation
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.*
 import de.mseprojekt.aunoa.feature_app.domain.use_case.state.GetCurrentState
 import de.mseprojekt.aunoa.feature_app.domain.use_case.state.InsertState
+import de.mseprojekt.aunoa.feature_app.domain.use_case.state.IsFirstRun
 import de.mseprojekt.aunoa.feature_app.domain.use_case.state.StateUseCases
 import javax.inject.Singleton
 
@@ -92,7 +93,8 @@ object AppModule {
     fun provideStateUseCases(repository: StateRepository) : StateUseCases{
         return StateUseCases(
             getCurrentState = GetCurrentState(repository),
-            insertState = InsertState(repository)
+            insertState = InsertState(repository),
+            isFirstRun = IsFirstRun(repository)
         )
     }
 
