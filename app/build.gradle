@@ -95,4 +95,7 @@ dependencies {
     implementation "com.google.accompanist:accompanist-permissions:0.21.1-beta"
 
     implementation 'com.google.code.gson:gson:2.8.5'
+
+    // Statusbar color
+    implementation "com.google.accompanist:accompanist-systemuicontroller:0.17.0"
 }

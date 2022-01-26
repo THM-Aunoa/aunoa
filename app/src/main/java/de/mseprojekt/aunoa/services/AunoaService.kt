@@ -49,6 +49,7 @@ import android.os.Build
 import android.telephony.*
 import android.telephony.cdma.CdmaCellLocation
 import android.telephony.gsm.GsmCellLocation
+import androidx.compose.material.ExperimentalMaterialApi
 import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.SpotifyAction
 import de.mseprojekt.aunoa.feature_app.domain.use_case.cell.CellUseCases
 import java.time.LocalDateTime
@@ -68,6 +69,7 @@ private const val CODE_FOREGROUND_SERVICE = 1
 
 private val ACTION_OBJECTS = listOf("VolumeAction", "SpotifyAction")
 
+@ExperimentalMaterialApi
 @AndroidEntryPoint
 class AunoaService: Service() {
 

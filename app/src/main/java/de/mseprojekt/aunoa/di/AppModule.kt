@@ -16,10 +16,7 @@ import de.mseprojekt.aunoa.feature_app.domain.repository.OperationRepository
 import de.mseprojekt.aunoa.feature_app.domain.repository.RuleRepository
 import de.mseprojekt.aunoa.feature_app.domain.repository.StateRepository
 import de.mseprojekt.aunoa.feature_app.domain.use_case.cell.*
-import de.mseprojekt.aunoa.feature_app.domain.use_case.operation.OperationsUseCases
-import de.mseprojekt.aunoa.feature_app.domain.use_case.operation.GetOperations
-import de.mseprojekt.aunoa.feature_app.domain.use_case.operation.GetOperationsById
-import de.mseprojekt.aunoa.feature_app.domain.use_case.operation.InsertOperation
+import de.mseprojekt.aunoa.feature_app.domain.use_case.operation.*
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.*
 import de.mseprojekt.aunoa.feature_app.domain.use_case.state.GetCurrentState
 import de.mseprojekt.aunoa.feature_app.domain.use_case.state.InsertState
@@ -71,6 +68,7 @@ object AppModule {
             getRule = GetRule(repository),
             getRules = GetRules(repository),
             getRulesWithTags = GetRulesWithTags(repository),
+            getRulesWithTagsWithoutFlow = GetRulesWithTagsWithoutFlow(repository),
             insertRule = InsertRule(repository),
             getRulesWithoutFlow = GetRulesWithoutFlow(repository),
             setActive = SetActive(repository),
@@ -82,7 +80,8 @@ object AppModule {
     @Singleton
     fun provideOperationUseCases(repository: OperationRepository): OperationsUseCases {
         return OperationsUseCases(
-            getOperation = GetOperations(repository),
+            getOperations = GetOperations(repository),
+            getOperationsWithRule = GetOperationsWithRule(repository),
             getOperationsById = GetOperationsById(repository),
             insertOperation = InsertOperation(repository)
         )

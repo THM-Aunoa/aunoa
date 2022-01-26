@@ -9,6 +9,8 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.MaterialTheme
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -17,6 +19,7 @@ import androidx.navigation.navArgument
 import dagger.hilt.android.AndroidEntryPoint
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.ActionObject
 import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.VolumeAction
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.CellTrigger
@@ -40,6 +43,7 @@ import java.time.DayOfWeek
 import java.time.LocalDateTime
 import javax.inject.Inject
 
+@ExperimentalMaterialApi
 @ExperimentalPermissionsApi
 @AndroidEntryPoint
 class MainActivity : ComponentActivity(
@@ -84,6 +88,12 @@ class MainActivity : ComponentActivity(
                         foregroundStartService("Start")
                     }
                 }
+
+                val systemUiController = rememberSystemUiController()
+                systemUiController.setSystemBarsColor(
+                    color = MaterialTheme.colors.primary
+                )
+
                 val navController = rememberNavController()
                 NavHost(
                     navController = navController,

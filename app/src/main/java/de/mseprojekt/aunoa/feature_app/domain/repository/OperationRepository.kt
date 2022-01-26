@@ -9,4 +9,5 @@ interface OperationRepository {
     suspend fun getOperationsById(id: Int): List<Operation>
     suspend fun insertOperation(operation: Operation)
     fun getOperations(): Flow<List<RuleWithOperations>>
+    fun getOperationsWithRule(): Flow<List<Operation>>
 }

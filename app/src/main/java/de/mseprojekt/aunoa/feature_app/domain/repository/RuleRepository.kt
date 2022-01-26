@@ -12,6 +12,7 @@ interface RuleRepository {
     suspend fun getMaxIdFromRules(): Int?
     suspend fun getRuleById(id: Int): RuleWithActAndTrig?
     fun getRulesWithoutFlow(): List<RuleWithActAndTrig>
+    fun getRulesWithTagsWithoutFlow(): List<RuleWithTags>
     fun getRules(): Flow<List<RuleWithActAndTrig>>
     fun getRulesWithTags(): Flow<List<RuleWithTags>>
     suspend fun insertRule(rule: Rule)

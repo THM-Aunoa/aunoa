@@ -17,6 +17,10 @@ class OperationRepositoryImpl(
         return dao.getOperations()
     }
 
+    override fun getOperationsWithRule(): Flow<List<Operation>> {
+        return dao.getOperationsWithRule()
+    }
+
     override suspend fun insertOperation(operation: Operation) {
         return dao.insertOperation(operation)
     }

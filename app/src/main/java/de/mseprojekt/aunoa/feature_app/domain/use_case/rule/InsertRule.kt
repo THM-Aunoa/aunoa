@@ -11,18 +11,27 @@ import de.mseprojekt.aunoa.feature_app.domain.repository.RuleRepository
 class InsertRule(
     private val repository: RuleRepository
 ) {
-    suspend operator fun invoke(action: ActionObject, actionObjectName: String, trigger: TriggerObject,triggerObjectName: String, title: String, description: String, priority: Int) {
+    suspend operator fun invoke(
+        action: ActionObject,
+        actionObjectName: String,
+        trigger: TriggerObject,
+        triggerObjectName: String,
+        title: String,
+        description: String,
+        priority: Int
+    ) {
         var maxId = repository.getMaxIdFromRules()
         val gson = Gson()
         if (maxId == null)
             maxId = 0
-        repository.insertRule(Rule(
-            ruleId = maxId + 1,
-            title = title,
-            priority = priority,
-            description = description,
-            active = false,
-            enabled = true
+        repository.insertRule(
+            Rule(
+                ruleId = maxId + 1,
+                title = title,
+                priority = priority,
+                description = description,
+                active = false,
+                enabled = true
             )
         )
         val actionString = gson.toJson(action)

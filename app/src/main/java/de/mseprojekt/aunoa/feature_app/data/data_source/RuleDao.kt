@@ -27,6 +27,10 @@ interface RuleDao {
     fun getRulesWithoutFlow(): List<RuleWithActAndTrig>
 
     @Transaction
+    @Query("SELECT * FROM rule")
+    fun getRulesWithTagsWithoutFlow(): List<RuleWithTags>
+
+    @Transaction
     @Query("SELECT * FROM rule WHERE ruleId = :id")
     suspend fun getRuleById(id: Int): RuleWithActAndTrig?
 

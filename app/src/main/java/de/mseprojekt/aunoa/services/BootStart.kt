@@ -4,12 +4,14 @@ import android.content.Intent
 
 import android.content.BroadcastReceiver
 import android.content.Context
+import androidx.compose.material.ExperimentalMaterialApi
 import de.mseprojekt.aunoa.feature_app.domain.use_case.state.StateUseCases
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@ExperimentalMaterialApi
 class BootStart : BroadcastReceiver() {
 
     @Inject

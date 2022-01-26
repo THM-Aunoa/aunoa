@@ -37,6 +37,14 @@ class RuleRepositoryImpl(
         return future!!.get()
     }
 
+    override fun getRulesWithTagsWithoutFlow(): List<RuleWithTags> {
+        val callable = Callable{ dao.getRulesWithTagsWithoutFlow() }
+
+        val future = Executors.newSingleThreadExecutor().submit(callable)
+
+        return future!!.get()
+    }
+
     override suspend fun insertRule(rule: Rule) {
         return dao.insertRule(rule)
     }
