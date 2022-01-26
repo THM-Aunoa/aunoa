@@ -7,6 +7,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import de.mseprojekt.aunoa.feature_app.data.data_source.AppDatabase
+import de.mseprojekt.aunoa.feature_app.data.remote.RulesHubAPI
 import de.mseprojekt.aunoa.feature_app.data.repository.*
 import de.mseprojekt.aunoa.feature_app.domain.repository.*
 import de.mseprojekt.aunoa.feature_app.domain.use_case.cell.*
@@ -15,6 +16,8 @@ import de.mseprojekt.aunoa.feature_app.domain.use_case.operation.GetOperations
 import de.mseprojekt.aunoa.feature_app.domain.use_case.operation.GetOperationsById
 import de.mseprojekt.aunoa.feature_app.domain.use_case.operation.InsertOperation
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.*
+import de.mseprojekt.aunoa.feature_app.domain.use_case.rulesHub.GetHubRules
+import de.mseprojekt.aunoa.feature_app.domain.use_case.rulesHub.RulesHubUseCases
 import de.mseprojekt.aunoa.feature_app.domain.use_case.state.GetCurrentState
 import de.mseprojekt.aunoa.feature_app.domain.use_case.state.InsertState
 import de.mseprojekt.aunoa.feature_app.domain.use_case.state.IsFirstRun
@@ -64,6 +67,12 @@ object AppModule {
     @Singleton
     fun provideUserRepository(db: AppDatabase): UserRepository {
         return UserRepositoryImpl(db.userDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRulesHubAPI(): RulesHubAPI {
+        return RulesHubAPI()
     }
 
 
@@ -120,6 +129,14 @@ object AppModule {
         return UserUseCases(
             getUser = GetUser(repository),
             insertUser = InsertUser(repository)
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideRulesHubUseCases(api: RulesHubAPI) : RulesHubUseCases {
+        return RulesHubUseCases(
+            getHubRules = GetHubRules(api)
         )
     }
 

@@ -56,8 +56,8 @@ import java.time.LocalDateTime
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector.ConnectionListener
 import com.spotify.android.appremote.api.SpotifyAppRemote;
+import de.mseprojekt.aunoa.feature_app.domain.use_case.rulesHub.RulesHubUseCases
 import de.mseprojekt.aunoa.feature_app.domain.use_case.state.StateUseCases
-import java.time.DayOfWeek
 import java.time.format.DateTimeFormatter
 
 const val INTENT_COMMAND = "Command"
@@ -97,6 +97,9 @@ class AunoaService: Service() {
     lateinit var ruleUseCases: RuleUseCases
 
     @Inject
+    lateinit var rulesHubUseCases: RulesHubUseCases
+
+    @Inject
     lateinit var operationsUseCases: OperationsUseCases
 
     lateinit var curNotificationBuilder: NotificationCompat.Builder
@@ -127,6 +130,7 @@ class AunoaService: Service() {
         if (command == INTENT_COMMAND_START && !this.isrunning){
             if (stateUseCases.getCurrentState()) {
                 this.isrunning = true
+                Log.d("Test123", rulesHubUseCases.getHubRules().toString())
                 showNotification()
                 runService()
             }
@@ -500,7 +504,7 @@ class AunoaService: Service() {
                     "CellTrigger" -> {
                         val temp = gson.fromJson(
                             newRule.content.trig.triggerObject,
-                            NfcTrigger::class.java
+                            CellTrigger::class.java
                         )
                         val list = mutableListOf<Long>()
                         list.addAll(cellUseCases.getCellIdsByRegion(temp.name))
