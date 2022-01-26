@@ -4,6 +4,6 @@ import de.mseprojekt.aunoa.feature_app.domain.model.State
 
 interface StateRepository {
 
-    suspend fun getCurrentState(): State?
+    fun getCurrentState(): State?
     suspend fun insertState(state: State)
 }

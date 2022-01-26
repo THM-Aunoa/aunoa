@@ -9,7 +9,7 @@ interface StateDao {
 
     @Transaction
     @Query("SELECT * FROM state WHERE stateId = (SELECT MAX(stateId) FROM state)")
-    suspend fun getCurrentState(): State?
+    fun getCurrentState(): State?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertState(state: State)

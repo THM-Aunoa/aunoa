@@ -56,6 +56,7 @@ import java.time.LocalDateTime
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector.ConnectionListener
 import com.spotify.android.appremote.api.SpotifyAppRemote;
+import de.mseprojekt.aunoa.feature_app.domain.use_case.state.StateUseCases
 import java.time.DayOfWeek
 import java.time.format.DateTimeFormatter
 
@@ -85,6 +86,9 @@ class AunoaService: Service() {
     private var scanMode = false
     private var scanRegion = -1
     private var scanUntil : LocalDateTime = LocalDateTime.now()
+
+    @Inject
+    lateinit var stateUseCases: StateUseCases
 
     @Inject
     lateinit var cellUseCases: CellUseCases
@@ -121,9 +125,11 @@ class AunoaService: Service() {
             return START_NOT_STICKY
         }
         if (command == INTENT_COMMAND_START && !this.isrunning){
-            this.isrunning = true
-            showNotification()
-            runService()
+            if (stateUseCases.getCurrentState()) {
+                this.isrunning = true
+                showNotification()
+                runService()
+            }
         }
 
         return START_STICKY
@@ -637,7 +643,7 @@ class AunoaService: Service() {
                 setShowBadge(false)
                 enableVibration(false)
                 setSound(null, null)
-                lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
                 manager.createNotificationChannel(this)
             }
         } catch (e: Exception) {

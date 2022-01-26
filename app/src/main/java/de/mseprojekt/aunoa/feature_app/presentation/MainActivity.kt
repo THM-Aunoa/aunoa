@@ -76,13 +76,12 @@ class MainActivity : ComponentActivity(
                     startActivity(intent)
                 }
                 CoroutineScope(Dispatchers.Main).launch {
-                    if (stateUseCases.getCurrentState()) {
-                        if (stateUseCases.isFirstRun()){
-                            insertExamples()
-                            stateUseCases.insertState(true)
-                        }
-                        foregroundStartService("Start")
+                    if (stateUseCases.isFirstRun()){
+                        insertExamples()
+                        stateUseCases.insertState(true)
                     }
+                    foregroundStartService("Start")
+
                 }
                 val navController = rememberNavController()
                 NavHost(
