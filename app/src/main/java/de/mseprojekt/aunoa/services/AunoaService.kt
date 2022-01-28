@@ -172,13 +172,33 @@ class AunoaService: Service() {
                 requestCellId(telephonyManager)
             }
             mutex.withLock {
-                for (ruleCategories in rules) {
+                for ((idx, ruleCategories) in rules.withIndex()) {
                     var activeRuleFound = false
                     for (rule in ruleCategories) {
                         val tResult = testTrigger(rule.trigger)
                         if (!tResult) {
                             var aResult = true
                             if (!activeRuleFound) {
+                                if (idx==0){
+                                    val current = when(audioManager.ringerMode) {
+                                        AudioManager.RINGER_MODE_SILENT -> {
+                                            0
+                                        }
+                                        AudioManager.RINGER_MODE_NORMAL -> {
+                                            2
+                                        }
+                                        AudioManager.RINGER_MODE_VIBRATE -> {
+                                            1
+                                        }
+                                        else -> {
+                                            -1
+                                        }
+                                    }
+                                    val action = rule.action as VolumeAction
+                                    if (current == action.deactivateVolume){
+                                        continue
+                                    }
+                                }
                                 Log.d("Action", "Action will be performed (Deactivation)")
                                 aResult = performAction(rule.action,audioManager, true)
                                 rule.rule.ruleId?.let {
@@ -432,6 +452,9 @@ class AunoaService: Service() {
                 return false
             }
             is SpotifyAction ->{
+                if (reverse) {
+                    return stop()
+                }
                 return play(action.playlist)
             }
             else -> {
@@ -730,6 +753,14 @@ class AunoaService: Service() {
         }
         return false
     }
+    private fun stop(): Boolean {
+        spotifyAppRemote?.let {
+            it.playerApi.pause()
+            return true
+        }
+        return false
+    }
+
 
     private fun startSpotify(service: AunoaService){
         val connectionParams = ConnectionParams.Builder(clientId)
