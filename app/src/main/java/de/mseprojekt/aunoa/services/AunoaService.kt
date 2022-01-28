@@ -228,11 +228,18 @@ class AunoaService: Service() {
                 if (requestCellId){
                     requestCellId(telephonyManager)
                 }
+                var double = false
                 mutex.withLock {
                     for (ruleCategories in rules) {
                         for (rule in ruleCategories) {
                             if (rule.rule.enabled) {
-                                if (rule.rule.active) {
+                                var secondCheck = false
+                                if(double){
+                                    if(rule.trigger is LocationTrigger || rule.trigger is CellTrigger || rule.trigger is WifiTrigger) {
+                                        secondCheck = true
+                                    }
+                                }
+                                if (rule.rule.active or secondCheck) {
                                     val tResult = testTrigger(rule.trigger, true)
                                     if (tResult) {
                                         Log.d("Action", "Action will be performed (Deactivation)")
@@ -252,6 +259,7 @@ class AunoaService: Service() {
                                             }
                                             rule.rule.active = false
                                             updateServiceText(rule.action, false)
+                                            double = true
                                         }
                                     } else {
                                         break
@@ -284,6 +292,7 @@ class AunoaService: Service() {
                         }
                     }
                 }
+                double = false
                 delay(delay)
             }
         }
