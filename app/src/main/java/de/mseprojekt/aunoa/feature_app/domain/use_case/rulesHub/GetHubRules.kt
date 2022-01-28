@@ -4,7 +4,9 @@ import android.util.Log
 import com.google.gson.Gson
 import de.mseprojekt.aunoa.feature_app.data.remote.RulesHubAPI
 import de.mseprojekt.aunoa.feature_app.domain.model.Rule
+import de.mseprojekt.aunoa.feature_app.domain.model.Tag
 import de.mseprojekt.aunoa.feature_app.domain.model.UnzippedRule
+import de.mseprojekt.aunoa.feature_app.domain.model.UnzippedRuleWithTags
 import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.SpotifyAction
 import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.VolumeAction
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.*
@@ -19,8 +21,8 @@ import java.time.DayOfWeek
 class GetHubRules(
     private val api: RulesHubAPI
 ) {
-    operator fun invoke(): ArrayList<UnzippedRule> {
-        val result: ArrayList<UnzippedRule> = ArrayList()
+    operator fun invoke(): ArrayList<UnzippedRuleWithTags> {
+        val result: ArrayList<UnzippedRuleWithTags> = ArrayList()
         try {
             val callable = Callable { api.getHubRules() }
 
@@ -34,6 +36,7 @@ class GetHubRules(
                     val jsonRule = rules.get(i) as JSONObject
                     val innerRule = jsonRule.get("rule") as JSONObject
                     val rule = Rule(
+                        ruleId = i,
                         title = innerRule.get("title") as String,
                         description = innerRule.get("description") as String,
                         priority = innerRule.get("priority") as Int,
@@ -97,11 +100,21 @@ class GetHubRules(
                             continue
                         }
                     }
+                    val tags: JSONArray = jsonRule.get("tags") as JSONArray
+                    val tagList: ArrayList<Tag> = ArrayList()
+                    for(j in 0 until tags.length()) {
+                        val tag = tags.get(j) as JSONObject
+                        tagList.add(Tag(
+                            title = tag.get("title") as String,
+                            description =  tag.get("description") as String
+                        ))
+                    }
                     result.add(
-                        UnzippedRule(
-                        rule = rule,
-                        action = action,
-                        trigger = trigger
+                        UnzippedRuleWithTags(
+                            rule = rule,
+                            action = action,
+                            trigger = trigger,
+                            tags = tagList
                         )
                     )
                 }

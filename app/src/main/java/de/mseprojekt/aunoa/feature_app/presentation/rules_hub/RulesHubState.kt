@@ -1,8 +1,8 @@
 package de.mseprojekt.aunoa.feature_app.presentation.rules_hub
 
-import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithTags
+import de.mseprojekt.aunoa.feature_app.domain.model.UnzippedRuleWithTags
 
 data class RulesHubState (
-    val rules: List<RuleWithTags> = emptyList(),
+    val rules: List<UnzippedRuleWithTags> = emptyList(),
     val searchText: String = ""
 )

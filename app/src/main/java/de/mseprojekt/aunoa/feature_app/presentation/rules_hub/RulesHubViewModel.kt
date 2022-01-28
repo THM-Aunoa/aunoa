@@ -7,17 +7,19 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithActAndTrig
 import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithTags
 import de.mseprojekt.aunoa.feature_app.domain.model.Rule
+import de.mseprojekt.aunoa.feature_app.domain.model.UnzippedRuleWithTags
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.RuleUseCases
+import de.mseprojekt.aunoa.feature_app.domain.use_case.rulesHub.RulesHubUseCases
 import de.mseprojekt.aunoa.feature_app.presentation.add_rule.AddRuleEvent
 import javax.inject.Inject
 
 
 @HiltViewModel
 class RulesHubViewModel @Inject constructor(
-    private val ruleUseCases: RuleUseCases
+    rulesHubUseCases: RulesHubUseCases
 ) : ViewModel(){
 
-    private val initRules: List<RuleWithTags> = ruleUseCases.getRulesWithTagsWithoutFlow()
+    private val initRules: List<UnzippedRuleWithTags> = rulesHubUseCases.getHubRules()
     private val _state = mutableStateOf(RulesHubState())
     val state: State<RulesHubState> = _state
 
