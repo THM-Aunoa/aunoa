@@ -7,21 +7,21 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import de.mseprojekt.aunoa.feature_app.data.data_source.AppDatabase
-import de.mseprojekt.aunoa.feature_app.data.repository.CellRepositoryImpl
-import de.mseprojekt.aunoa.feature_app.data.repository.OperationRepositoryImpl
-import de.mseprojekt.aunoa.feature_app.data.repository.RuleRepositoryImpl
-import de.mseprojekt.aunoa.feature_app.data.repository.StateRepositoryImpl
-import de.mseprojekt.aunoa.feature_app.domain.repository.CellRepository
-import de.mseprojekt.aunoa.feature_app.domain.repository.OperationRepository
-import de.mseprojekt.aunoa.feature_app.domain.repository.RuleRepository
-import de.mseprojekt.aunoa.feature_app.domain.repository.StateRepository
+import de.mseprojekt.aunoa.feature_app.data.remote.RulesHubAPI
+import de.mseprojekt.aunoa.feature_app.data.repository.*
+import de.mseprojekt.aunoa.feature_app.domain.repository.*
 import de.mseprojekt.aunoa.feature_app.domain.use_case.cell.*
 import de.mseprojekt.aunoa.feature_app.domain.use_case.operation.*
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.*
+import de.mseprojekt.aunoa.feature_app.domain.use_case.rulesHub.GetHubRules
+import de.mseprojekt.aunoa.feature_app.domain.use_case.rulesHub.RulesHubUseCases
 import de.mseprojekt.aunoa.feature_app.domain.use_case.state.GetCurrentState
 import de.mseprojekt.aunoa.feature_app.domain.use_case.state.InsertState
 import de.mseprojekt.aunoa.feature_app.domain.use_case.state.IsFirstRun
 import de.mseprojekt.aunoa.feature_app.domain.use_case.state.StateUseCases
+import de.mseprojekt.aunoa.feature_app.domain.use_case.user.GetUser
+import de.mseprojekt.aunoa.feature_app.domain.use_case.user.InsertUser
+import de.mseprojekt.aunoa.feature_app.domain.use_case.user.UserUseCases
 import javax.inject.Singleton
 
 @Module
@@ -58,6 +58,18 @@ object AppModule {
     @Singleton
     fun provideCellRepository(db: AppDatabase): CellRepository {
         return CellRepositoryImpl(db.cellDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserRepository(db: AppDatabase): UserRepository {
+        return UserRepositoryImpl(db.userDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRulesHubAPI(): RulesHubAPI {
+        return RulesHubAPI()
     }
 
 
@@ -110,4 +122,21 @@ object AppModule {
             getRegionIdByName = GetRegionIdByName(repository)
         )
     }
+    @Provides
+    @Singleton
+    fun provideUserUseCases(repository: UserRepository) : UserUseCases {
+        return UserUseCases(
+            getUser = GetUser(repository),
+            insertUser = InsertUser(repository)
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideRulesHubUseCases(api: RulesHubAPI) : RulesHubUseCases {
+        return RulesHubUseCases(
+            getHubRules = GetHubRules(api)
+        )
+    }
+
 }

@@ -57,7 +57,8 @@ import java.time.LocalDateTime
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector.ConnectionListener
 import com.spotify.android.appremote.api.SpotifyAppRemote;
-import java.time.DayOfWeek
+import de.mseprojekt.aunoa.feature_app.domain.use_case.rulesHub.RulesHubUseCases
+import de.mseprojekt.aunoa.feature_app.domain.use_case.state.StateUseCases
 import java.time.format.DateTimeFormatter
 
 const val INTENT_COMMAND = "Command"
@@ -89,10 +90,16 @@ class AunoaService: Service() {
     private var scanUntil : LocalDateTime = LocalDateTime.now()
 
     @Inject
+    lateinit var stateUseCases: StateUseCases
+
+    @Inject
     lateinit var cellUseCases: CellUseCases
 
     @Inject
     lateinit var ruleUseCases: RuleUseCases
+
+    @Inject
+    lateinit var rulesHubUseCases: RulesHubUseCases
 
     @Inject
     lateinit var operationsUseCases: OperationsUseCases
@@ -123,9 +130,12 @@ class AunoaService: Service() {
             return START_NOT_STICKY
         }
         if (command == INTENT_COMMAND_START && !this.isrunning){
-            this.isrunning = true
-            showNotification()
-            runService()
+            if (stateUseCases.getCurrentState()) {
+                this.isrunning = true
+                Log.d("Test123", rulesHubUseCases.getHubRules().toString())
+                showNotification()
+                runService()
+            }
         }
 
         return START_STICKY
@@ -496,7 +506,7 @@ class AunoaService: Service() {
                     "CellTrigger" -> {
                         val temp = gson.fromJson(
                             newRule.content.trig.triggerObject,
-                            NfcTrigger::class.java
+                            CellTrigger::class.java
                         )
                         val list = mutableListOf<Long>()
                         list.addAll(cellUseCases.getCellIdsByRegion(temp.name))
@@ -639,7 +649,7 @@ class AunoaService: Service() {
                 setShowBadge(false)
                 enableVibration(false)
                 setSound(null, null)
-                lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
                 manager.createNotificationChannel(this)
             }
         } catch (e: Exception) {

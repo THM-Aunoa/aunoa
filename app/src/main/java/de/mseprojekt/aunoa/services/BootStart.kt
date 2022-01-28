@@ -5,17 +5,14 @@ import android.content.Intent
 import android.content.BroadcastReceiver
 import android.content.Context
 import androidx.compose.material.ExperimentalMaterialApi
-import de.mseprojekt.aunoa.feature_app.domain.use_case.state.StateUseCases
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @ExperimentalMaterialApi
 class BootStart : BroadcastReceiver() {
 
-    @Inject
-    lateinit var stateUseCases: StateUseCases
 
     override fun onReceive(context: Context, arg1: Intent?) {
         val action = arg1?.action
@@ -23,9 +20,7 @@ class BootStart : BroadcastReceiver() {
         if (action != null) {
             if (Intent.ACTION_BOOT_COMPLETED == action || Intent.ACTION_LOCKED_BOOT_COMPLETED == action){
                 CoroutineScope(Dispatchers.Main).launch {
-                    if (stateUseCases.getCurrentState()) {
-                        startService(context)
-                    }
+                    startService(context)
                 }
             }
         }
