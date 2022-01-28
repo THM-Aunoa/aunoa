@@ -40,7 +40,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
-import java.time.LocalDateTime
 import javax.inject.Inject
 
 @ExperimentalMaterialApi
@@ -136,7 +135,157 @@ class MainActivity : ComponentActivity(
     }
 
     suspend fun insertExamples() {
-        cellUseCases.insertRegion("Zuhause")
+        cellUseCases.insertRegion("Home")
+        var xx: TriggerObject = CellTrigger(
+            name = "Zuhause"
+        )
+        var yy: ActionObject = VolumeAction(
+            activateVolume = 2,
+            deactivateVolume = 0
+        )
+        ruleUseCases.insertRule(
+            trigger = xx,
+            action = yy,
+            triggerObjectName = "CellTrigger",
+            actionObjectName = "VolumeAction",
+            title = "Cell-Trigger",
+            description = "Zuhause Ton an",
+            priority = 9,
+        )
+
+        xx = TimeTrigger(
+            startTime = 79200,
+            endTime = 28800,
+            startWeekday = DayOfWeek.SUNDAY,
+            endWeekday = DayOfWeek.MONDAY,
+        )
+        yy = VolumeAction(
+            activateVolume = 0,
+            deactivateVolume = 2
+        )
+        ruleUseCases.insertRule(
+            trigger = xx,
+            action = yy,
+            triggerObjectName = "TimeTrigger",
+            actionObjectName = "VolumeAction",
+            title = "Time-Trigger",
+            description = "Sonntag Nachts auf lautlos",
+            priority = 10,
+        )
+        xx = TimeTrigger(
+            startTime = 79200,
+            endTime = 28800,
+            startWeekday = DayOfWeek.MONDAY,
+            endWeekday = DayOfWeek.TUESDAY,
+        )
+        yy = VolumeAction(
+            activateVolume = 0,
+            deactivateVolume = 2
+        )
+        ruleUseCases.insertRule(
+            trigger = xx,
+            action = yy,
+            triggerObjectName = "TimeTrigger",
+            actionObjectName = "VolumeAction",
+            title = "Time-Trigger",
+            description = "Montag Nachts auf lautlos",
+            priority = 10,
+        )
+        xx = TimeTrigger(
+            startTime = 79200,
+            endTime = 28800,
+            startWeekday = DayOfWeek.TUESDAY,
+            endWeekday = DayOfWeek.WEDNESDAY,
+        )
+        yy = VolumeAction(
+            activateVolume = 0,
+            deactivateVolume = 2
+        )
+        ruleUseCases.insertRule(
+            trigger = xx,
+            action = yy,
+            triggerObjectName = "TimeTrigger",
+            actionObjectName = "VolumeAction",
+            title = "Time-Trigger",
+            description = "Dienstag Nachts auf lautlos",
+            priority = 10,
+        )
+        xx = TimeTrigger(
+            startTime = 79200,
+            endTime = 28800,
+            startWeekday = DayOfWeek.WEDNESDAY,
+            endWeekday = DayOfWeek.THURSDAY,
+        )
+        yy = VolumeAction(
+            activateVolume = 0,
+            deactivateVolume = 2
+        )
+        ruleUseCases.insertRule(
+            trigger = xx,
+            action = yy,
+            triggerObjectName = "TimeTrigger",
+            actionObjectName = "VolumeAction",
+            title = "Time-Trigger",
+            description = "Mittwoch Nachts auf lautlos",
+            priority = 10,
+        )
+        xx = TimeTrigger(
+            startTime = 79200,
+            endTime = 28800,
+            startWeekday = DayOfWeek.THURSDAY,
+            endWeekday = DayOfWeek.FRIDAY,
+        )
+        yy = VolumeAction(
+            activateVolume = 0,
+            deactivateVolume = 2
+        )
+        ruleUseCases.insertRule(
+            trigger = xx,
+            action = yy,
+            triggerObjectName = "TimeTrigger",
+            actionObjectName = "VolumeAction",
+            title = "Time-Trigger",
+            description = "Donnerstag Nachts auf lautlos",
+            priority = 10,
+        )
+        xx = TimeTrigger(
+            startTime = 39000,
+            endTime = 32400,
+            startWeekday = DayOfWeek.FRIDAY,
+            endWeekday = DayOfWeek.SATURDAY,
+        )
+        yy = VolumeAction(
+            activateVolume = 0,
+            deactivateVolume = 2
+        )
+        ruleUseCases.insertRule(
+            trigger = xx,
+            action = yy,
+            triggerObjectName = "TimeTrigger",
+            actionObjectName = "VolumeAction",
+            title = "Time-Trigger",
+            description = "Freitag Nachts auf lautlos",
+            priority = 10,
+        )
+        xx = TimeTrigger(
+            startTime = 85800,
+            endTime = 32400,
+            startWeekday = DayOfWeek.SATURDAY,
+            endWeekday = DayOfWeek.SUNDAY,
+        )
+        yy = VolumeAction(
+            activateVolume = 0,
+            deactivateVolume = 2
+        )
+        ruleUseCases.insertRule(
+            trigger = xx,
+            action = yy,
+            triggerObjectName = "TimeTrigger",
+            actionObjectName = "VolumeAction",
+            title = "Time-Trigger",
+            description = "Samstag Nachts auf lautlos",
+            priority = 10,
+        )
 
     }
 }

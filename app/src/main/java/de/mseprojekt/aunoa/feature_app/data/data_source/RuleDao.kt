@@ -1,11 +1,10 @@
 package de.mseprojekt.aunoa.feature_app.data.data_source
 
+import androidx.appcompat.widget.DialogTitle
 import androidx.room.*
 import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithActAndTrig
 import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithTags
-import de.mseprojekt.aunoa.feature_app.domain.model.Act
-import de.mseprojekt.aunoa.feature_app.domain.model.Rule
-import de.mseprojekt.aunoa.feature_app.domain.model.Trig
+import de.mseprojekt.aunoa.feature_app.domain.model.*
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -51,4 +50,21 @@ interface RuleDao {
 
     @Query("DELETE from rule WHERE ruleId = :ruleId")
     suspend fun deleteRule(ruleId: Int)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertTag(tag: Tag)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRuleTagCrossRef(ruleTagCrossRef : RuleTagCrossRef)
+
+    @Query("SELECT * FROM tag")
+    fun getTags(): Flow<List<Tag>>
+
+    @Query("SELECT * FROM tag where title= :title")
+    fun getTagByName(title: String): Tag
+
+    @Query("SELECT * FROM rule")
+    fun getTagsWithoutFlow(): List<Tag>
+
+
 }

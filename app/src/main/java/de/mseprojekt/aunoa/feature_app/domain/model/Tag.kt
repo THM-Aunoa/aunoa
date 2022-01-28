@@ -8,6 +8,5 @@ data class Tag(
     @PrimaryKey
     val tagId: Int? = null,
 
-    val title: String,
-    val description: String,
+    val title: String
 )

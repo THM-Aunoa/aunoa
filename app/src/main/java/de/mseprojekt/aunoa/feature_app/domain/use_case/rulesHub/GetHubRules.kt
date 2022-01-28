@@ -105,8 +105,7 @@ class GetHubRules(
                     for(j in 0 until tags.length()) {
                         val tag = tags.get(j) as JSONObject
                         tagList.add(Tag(
-                            title = tag.get("title") as String,
-                            description =  tag.get("description") as String
+                            title = tag.get("title") as String
                         ))
                     }
                     result.add(

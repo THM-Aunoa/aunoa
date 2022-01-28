@@ -9,5 +9,9 @@ data class RuleUseCases(
     val getRulesWithoutFlow: GetRulesWithoutFlow,
     val setActive: SetActive,
     val setEnabled: SetEnabled,
-    val removeRule: RemoveRule
+    val removeRule: RemoveRule,
+    val getTags: GetTags,
+    val insertRuleTagCrossRef: InsertRuleTagCrossRef,
+    val insertTag: InsertTag,
+    val insertTags: InsertTags
 )

@@ -86,6 +86,10 @@ object AppModule {
             setActive = SetActive(repository),
             setEnabled = SetEnabled(repository),
             removeRule = RemoveRule(repository),
+            getTags = GetTags(repository),
+            insertRuleTagCrossRef = InsertRuleTagCrossRef(repository),
+            insertTag = InsertTag(repository),
+            insertTags = InsertTags(repository)
         )
     }
     @Provides

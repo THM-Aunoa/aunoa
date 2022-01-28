@@ -2,9 +2,7 @@ package de.mseprojekt.aunoa.feature_app.domain.repository
 
 import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithActAndTrig
 import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithTags
-import de.mseprojekt.aunoa.feature_app.domain.model.Act
-import de.mseprojekt.aunoa.feature_app.domain.model.Rule
-import de.mseprojekt.aunoa.feature_app.domain.model.Trig
+import de.mseprojekt.aunoa.feature_app.domain.model.*
 import kotlinx.coroutines.flow.Flow
 
 interface RuleRepository {
@@ -21,4 +19,10 @@ interface RuleRepository {
     suspend fun insertTrigger(trigger: Trig)
     suspend fun setActive(active: Boolean, id: Int)
     suspend fun setEnabled(enabled: Boolean, id: Int)
+    fun insertTag(tag: Tag)
+    fun insertTags(tags: List<Tag>): List<Tag>
+    suspend fun insertRuleTagCrossRef(ruleTagCrossRef : RuleTagCrossRef)
+    fun getTags(): Flow<List<Tag>>
+    fun getTagsWithoutFlow(): List<Tag>
+    fun getTagByName(title : String): Tag
 }
