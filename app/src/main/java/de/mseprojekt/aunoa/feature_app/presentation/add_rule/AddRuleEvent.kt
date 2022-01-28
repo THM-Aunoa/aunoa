@@ -4,6 +4,7 @@ import de.mseprojekt.aunoa.feature_app.domain.model.Rule
 
 sealed class AddRuleEvent {
     object SaveRule: AddRuleEvent()
+    object FillCurrentLocationBoxes: AddRuleEvent()
     data class EnteredTitle(val value: String): AddRuleEvent()
     data class EnteredDescription(val value: String): AddRuleEvent()
     data class ChoosedTrigger(val value: String): AddRuleEvent()

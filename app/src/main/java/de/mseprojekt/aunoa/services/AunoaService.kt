@@ -64,6 +64,7 @@ import java.time.format.DateTimeFormatter
 const val INTENT_COMMAND = "Command"
 const val INTENT_COMMAND_EXIT = "Exit"
 const val INTENT_COMMAND_START = "Start"
+const val INTENT_COMMAND_UPDATE = "Update"
 
 private const val NOTIFICATION_CHANNEL_GENERAL = "Checking"
 private const val CODE_FOREGROUND_SERVICE = 1
@@ -129,6 +130,11 @@ class AunoaService: Service() {
             stopService()
             return START_NOT_STICKY
         }
+        if (command == INTENT_COMMAND_UPDATE) {
+            CoroutineScope(Dispatchers.Main).launch {
+                updateRuleList()
+            }
+        }
         if (command == INTENT_COMMAND_START && !this.isrunning){
             if (stateUseCases.getCurrentState()) {
                 this.isrunning = true
@@ -158,11 +164,10 @@ class AunoaService: Service() {
 
     private fun runService() {
         CoroutineScope(Dispatchers.Main).launch {
-            val gson = Gson()
             val telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
             val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
-            updateRuleList(gson)
+            updateRuleList()
             Log.d("a", rules.toString())
             if (requestLocation) {
                 requestLocation()
@@ -464,7 +469,9 @@ class AunoaService: Service() {
         }
     }
 
-    suspend fun updateRuleList(gson: Gson){
+    suspend fun updateRuleList(){
+        Log.d("Update", "Updating Rule List")
+        val gson = Gson()
         val newRules = ruleUseCases.getRulesWithoutFlow()
         val oldSpotify = useSpotify
         mutex.withLock {
