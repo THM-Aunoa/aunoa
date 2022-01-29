@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -17,7 +18,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -135,11 +135,10 @@ class MainActivity : ComponentActivity(
                                         "Du kannst dafür direkt über den Button in die Einstellungen wechseln und danach direkt zurück in die App wechseln."
                             )
                             Button(onClick = {
-                                ContextCompat.startActivity(
-                                    context,
-                                    Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS),
-                                    null
-                                )
+                                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                val uri: Uri = Uri.fromParts("package", packageName, null)
+                                intent.data = uri
+                                startActivity(intent)
                             }, Modifier.padding(top = 20.dp)) {
                                 Text("Einstellungen öffnen")
                             }
@@ -201,11 +200,10 @@ class MainActivity : ComponentActivity(
                                                 "Du kannst dafür direkt über den Button in die Einstellungen wechseln und danach direkt zurück in die App wechseln."
                                     )
                                     Button(onClick = {
-                                        ContextCompat.startActivity(
-                                            context,
-                                            Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS),
-                                            null
-                                        )
+                                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                        val uri: Uri = Uri.fromParts("package", packageName, null)
+                                        intent.data = uri
+                                        startActivity(intent)
                                     }, Modifier.padding(top = 20.dp)) {
                                         Text("Einstellungen öffnen")
                                     }
