@@ -1,33 +1,24 @@
 package de.mseprojekt.aunoa.feature_app.presentation.operation
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.MultiplePermissionsState
 import de.mseprojekt.aunoa.feature_app.presentation.util.Screen
 import de.mseprojekt.aunoa.feature_app.presentation.util.bottom_navigation_bar.BottomNavigationBar
 import de.mseprojekt.aunoa.feature_app.presentation.util.card.AunoaCard
 import de.mseprojekt.aunoa.feature_app.presentation.util.card.CardActionItem
 import de.mseprojekt.aunoa.feature_app.presentation.util.top_app_bar.AunoaTopBar
 import de.mseprojekt.aunoa.feature_app.presentation.util.top_app_bar.TopBarActionItem
-import kotlinx.coroutines.runBlocking
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -37,24 +28,7 @@ import java.util.*
 fun ActivityScreen(
     navController: NavController,
     viewModel: OperationViewModel = hiltViewModel(),
-    permissionsState: MultiplePermissionsState,
 ) {
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(
-        key1 = lifecycleOwner,
-        effect = {
-            val observer = LifecycleEventObserver { _, event ->
-                if (event == Lifecycle.Event.ON_START) {
-                    permissionsState.launchMultiplePermissionRequest()
-                }
-            }
-            lifecycleOwner.lifecycle.addObserver(observer)
-
-            onDispose {
-                lifecycleOwner.lifecycle.removeObserver(observer)
-            }
-        }
-    )
 
     val state = viewModel.state.value
     val scaffoldState = rememberScaffoldState()
