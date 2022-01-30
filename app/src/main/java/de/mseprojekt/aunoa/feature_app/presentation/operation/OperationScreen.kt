@@ -20,6 +20,9 @@ import de.mseprojekt.aunoa.feature_app.presentation.util.card.CardActionItem
 import de.mseprojekt.aunoa.feature_app.presentation.util.top_app_bar.AunoaTopBar
 import de.mseprojekt.aunoa.feature_app.presentation.util.top_app_bar.TopBarActionItem
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 @ExperimentalMaterialApi
@@ -34,9 +37,8 @@ fun ActivityScreen(
     val scaffoldState = rememberScaffoldState()
     val scrollState = rememberScrollState()
     var showSearch by remember { mutableStateOf(false) }
-    val sdf = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
-
-    val actionItems = listOf<TopBarActionItem>(
+    val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
+        val actionItems = listOf<TopBarActionItem>(
         TopBarActionItem(
             "info",
             Icons.Filled.Info,
@@ -61,7 +63,7 @@ fun ActivityScreen(
                             navController = navController,
                             title = operation.operationId.toString(),
                             // TODO different time format
-                            subtitle = sdf.format(Date(operation.date)),
+                            subtitle = LocalDateTime.ofEpochSecond(operation.date, 0, ZoneOffset.UTC).format(formatter),
                             actions = listOf(
                                 CardActionItem(
                                     "Go to Rule",
