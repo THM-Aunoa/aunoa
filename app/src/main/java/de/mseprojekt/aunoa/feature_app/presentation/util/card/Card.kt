@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import de.mseprojekt.aunoa.feature_app.domain.model.Tag
@@ -18,12 +19,12 @@ import de.mseprojekt.aunoa.feature_app.presentation.util.chip.AunoaChip
 fun AunoaCard(
     navController: NavController,
     title: String,
-    subtitle: String,
+    subtitle: String = "",
     content: String = "",
+    iconAction: CardIconAction? = null,
     actions: List<CardActionItem> = emptyList(),
     tags: List<Tag> = emptyList()
 ) {
-    println(tags)
     Card(
         elevation = 12.dp,
         modifier = Modifier
@@ -31,12 +32,24 @@ fun AunoaCard(
             .fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row() {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(title, style = MaterialTheme.typography.h5)
-                    Text(subtitle, style = MaterialTheme.typography.h6)
+                    if (subtitle != "") {
+                        Text(subtitle, style = MaterialTheme.typography.h6)
+                    }
                 }
-                Icon(Icons.Filled.Share, contentDescription = "Share")
+                if (iconAction != null) {
+                    IconButton(
+                        onClick = iconAction.onClick,
+                        ) {
+                        Icon(iconAction.icon, iconAction.label)
+                    }
+                }
+                //Icon(Icons.Filled.Share, contentDescription = "Share")
+                /*IconButton(onClick = { /*TODO*/ }) {
+                    Icon(Icons.Filled.Share, contentDescription = "Share")
+                }*/
             }
             if (content != "") {
                 Text(
@@ -56,11 +69,6 @@ fun AunoaCard(
                             onClick = { navController.navigate(Screen.OperationScreen.route) })
                         Spacer(modifier = Modifier.width(4.dp))
                     }
-                    AunoaChip(
-                        label = "WIFI",
-                        onClick = { navController.navigate(Screen.OperationScreen.route) })
-                    Spacer(modifier = Modifier.width(4.dp))
-                    AunoaChip(label = "SOUND")
                 }
                 Row() {
                     actions.forEach { action ->
