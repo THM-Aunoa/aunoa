@@ -345,7 +345,7 @@ class EditRuleViewModel @Inject constructor(
                         }
                         val ruleId = ruleUseCases.insertRule(
                             trigger = trigger!!,
-                            action = state.value.action!!,
+                            action = action!!,
                             title = state.value.title,
                             description = state.value.description,
                             priority = state.value.priority,

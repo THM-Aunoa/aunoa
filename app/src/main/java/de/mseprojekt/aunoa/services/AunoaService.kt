@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.*
 import android.app.NotificationManager.IMPORTANCE_LOW
+import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
@@ -729,7 +730,7 @@ class AunoaService: Service() {
             this,
             0,
             Intent(this, MainActivity::class.java),
-            FLAG_UPDATE_CURRENT
+            FLAG_UPDATE_CURRENT or FLAG_IMMUTABLE
         )
         try {
             with(
