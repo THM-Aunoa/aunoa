@@ -4,11 +4,10 @@ import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithOperat
 import de.mseprojekt.aunoa.feature_app.domain.repository.OperationRepository
 import kotlinx.coroutines.flow.Flow
 
-class GetOperations (
+class GetRulesWithOperations (
     private val repository: OperationRepository
     ){
     operator fun invoke(): Flow<List<RuleWithOperations>> {
-        return repository.getOperations()
-
+        return repository.getRulesWithOperations()
     }
 }

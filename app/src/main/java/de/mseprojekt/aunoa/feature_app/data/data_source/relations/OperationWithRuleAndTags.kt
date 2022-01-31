@@ -5,11 +5,12 @@ import androidx.room.Relation
 import de.mseprojekt.aunoa.feature_app.domain.model.Operation
 import de.mseprojekt.aunoa.feature_app.domain.model.Rule
 
-data class RuleWithOperations(
-    @Embedded val rule: Rule,
+data class OperationWithRuleAndTags(
+    @Embedded val operation: Operation,
     @Relation(
+        entity = Rule::class,
         parentColumn = "ruleId",
         entityColumn = "ruleId"
     )
-    val operations: List<Operation>
-    )
+    val ruleWithTags: RuleWithTags,
+)

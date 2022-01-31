@@ -5,20 +5,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithOperations
-import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithTags
-import de.mseprojekt.aunoa.feature_app.domain.model.Operation
 import de.mseprojekt.aunoa.feature_app.domain.use_case.cell.CellUseCases
 import de.mseprojekt.aunoa.feature_app.domain.use_case.operation.OperationsUseCases
 import de.mseprojekt.aunoa.feature_app.domain.use_case.state.StateUseCases
 import de.mseprojekt.aunoa.feature_app.domain.use_case.user.UserUseCases
-import de.mseprojekt.aunoa.feature_app.presentation.edit_rule.EditRuleEvent
-import de.mseprojekt.aunoa.feature_app.presentation.edit_rule.EditRuleViewModel
-import de.mseprojekt.aunoa.feature_app.presentation.rules_hub.RulesHubState
 import de.mseprojekt.aunoa.other.AunoaEventInterface
 import de.mseprojekt.aunoa.other.AunoaViewModelInterface
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -114,7 +111,7 @@ class OperationViewModel @Inject constructor(
 
     private fun getOperations() {
         getOperationsJob?.cancel()
-        getOperationsJob = operationsUseCases.getOperationsWithRule()
+        getOperationsJob = operationsUseCases.getOperationsWithRuleAndTags()
             .onEach { operations ->
                 _state.value = state.value.copy(
                     operations = operations

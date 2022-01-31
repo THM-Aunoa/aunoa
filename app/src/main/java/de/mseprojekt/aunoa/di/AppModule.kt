@@ -91,17 +91,19 @@ object AppModule {
 //            getTagsForRule = GetTagsForRule(repository),
             insertRuleTagCrossRef = InsertRuleTagCrossRef(repository),
             insertTag = InsertTag(repository),
-            insertTags = InsertTags(repository)
+            insertTags = InsertTags(repository),
+            clearTagsForRule = ClearTagsForRule(repository)
         )
     }
     @Provides
     @Singleton
     fun provideOperationUseCases(repository: OperationRepository): OperationsUseCases {
         return OperationsUseCases(
-            getOperations = GetOperations(repository),
-            getOperationsWithRule = GetOperationsWithRule(repository),
+            getOperationsWithRuleAndTags = GetOperationsWithRuleAndTags(repository),
+            getRulesWithOperations = GetRulesWithOperations(repository),
             getOperationsById = GetOperationsById(repository),
-            insertOperation = InsertOperation(repository)
+            insertOperation = InsertOperation(repository),
+            deleteOldOperations = DeleteOldOperations(repository)
         )
     }
 

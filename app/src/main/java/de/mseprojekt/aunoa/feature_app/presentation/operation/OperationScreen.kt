@@ -10,7 +10,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,7 +41,7 @@ import java.time.format.DateTimeFormatter
 @ExperimentalMaterialApi
 @ExperimentalPermissionsApi
 @Composable
-fun ActivityScreen(
+fun OperationScreen(
     navController: NavController,
     viewModel: OperationViewModel = hiltViewModel(),
 ) {
@@ -123,18 +126,21 @@ fun ActivityScreen(
                     items(state.operations.asReversed()) { operation ->
                         AunoaCard(
                             navController = navController,
-                            title = operation.operationId.toString(),
+                            title = operation.ruleWithTags.rule.title,
                             subtitle = LocalDateTime.ofEpochSecond(
-                                operation.date,
+                                operation.operation.date,
                                 0,
                                 ZoneOffset.UTC
                             ).format(formatter),
+                            content = operation.operation.status.toString(),
+                            tags = operation.ruleWithTags.tags,
                             actions = listOf(
                                 CardActionItem(
                                     "Go to Rule",
-                                    { navController.navigate(Screen.RulesHubScreen.route) })
+                                    { navController.navigate(Screen.RulesDetailsScreen.route + "?ruleId=${operation.ruleWithTags.rule.ruleId}") })
                             ),
-                            onClickTag = { println("TAAAAG") },
+                            onClickCard = { navController.navigate(Screen.RulesDetailsScreen.route + "?ruleId=${operation.ruleWithTags.rule.ruleId}") },
+                            onClickTag = {},
                             viewModel = viewModel
                         )
                     }

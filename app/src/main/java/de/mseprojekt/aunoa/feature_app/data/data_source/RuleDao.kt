@@ -1,6 +1,5 @@
 package de.mseprojekt.aunoa.feature_app.data.data_source
 
-import androidx.appcompat.widget.DialogTitle
 import androidx.room.*
 import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithActAndTrig
 import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithTags
@@ -72,6 +71,9 @@ interface RuleDao {
 
     @Query("SELECT * FROM rule")
     fun getTagsWithoutFlow(): List<Tag>
+
+    @Query("DELETE from RuleTagCrossRef WHERE ruleId = :ruleId")
+    suspend fun clearTagsForRule(ruleId: Int)
 
 
 }
