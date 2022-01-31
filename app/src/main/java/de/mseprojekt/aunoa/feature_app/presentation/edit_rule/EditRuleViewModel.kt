@@ -246,6 +246,13 @@ class EditRuleViewModel @Inject constructor(
                     )
                 )
             }
+            is EditRuleEvent.EnteredEndDay -> {
+                _state.value = _state.value.copy(
+                    timeTrigger = _state.value.timeTrigger!!.copy(
+                        endWeekday = DayOfWeek.valueOf(event.value)
+                    )
+                )
+            }
             is EditRuleEvent.EnteredStartTimeHour -> {
                 val newTime = state.value.startTimeMinutes * 60 + event.value.toInt() * 3600
                 _state.value = _state.value.copy(
