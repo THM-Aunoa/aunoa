@@ -247,7 +247,7 @@ class EditRuleViewModel @Inject constructor(
                 )
             }
             is EditRuleEvent.EnteredStartTimeHour -> {
-                val newTime = state.value.startTimeMinutes + event.value.toInt() * 3600
+                val newTime = state.value.startTimeMinutes * 60 + event.value.toInt() * 3600
                 _state.value = _state.value.copy(
                     startTimeHour = event.value.toInt(),
                     timeTrigger = _state.value.timeTrigger!!.copy(
@@ -256,7 +256,7 @@ class EditRuleViewModel @Inject constructor(
                 )
             }
             is EditRuleEvent.EnteredStartTimeMinutes -> {
-                val newTime = state.value.startTimeHour + event.value.toInt() * 60
+                val newTime = state.value.startTimeHour * 3600 + event.value.toInt() * 60
                 _state.value = _state.value.copy(
                     startTimeHour = event.value.toInt(),
                     timeTrigger = _state.value.timeTrigger!!.copy(
@@ -265,7 +265,7 @@ class EditRuleViewModel @Inject constructor(
                 )
             }
             is EditRuleEvent.EnteredEndTimeHour -> {
-                val newTime = state.value.endTimeMinutes + event.value.toInt() * 3600
+                val newTime = state.value.endTimeMinutes * 60 + event.value.toInt() * 3600
                 _state.value = _state.value.copy(
                     endTimeHour = event.value.toInt(),
                     timeTrigger = _state.value.timeTrigger!!.copy(
@@ -274,7 +274,7 @@ class EditRuleViewModel @Inject constructor(
                 )
             }
             is EditRuleEvent.EnteredEndTimeMinutes -> {
-                val newTime = state.value.endTimeHour + event.value.toInt() * 60
+                val newTime = state.value.endTimeHour * 3600 + event.value.toInt() * 60
                 _state.value = _state.value.copy(
                     endTimeHour = event.value.toInt(),
                     timeTrigger = _state.value.timeTrigger!!.copy(
