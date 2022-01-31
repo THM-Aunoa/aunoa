@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.gson.Gson
+import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.VolumeAction
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.CellTrigger
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.LocationTrigger
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TimeTrigger
@@ -110,7 +111,6 @@ fun RuleDetailsScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth(.8f)
-                            .align(Alignment.CenterHorizontally)
                             .border(
                                 BorderStroke(2.dp, MaterialTheme.colors.primary),
                                 RoundedCornerShape(5)
@@ -146,7 +146,10 @@ fun RuleDetailsScreen(
                                                 style = MaterialTheme.typography.h6
                                             )
                                             Text(
-                                                text = "${timeTrigger.startWeekday.toString().lowercase().replaceFirstChar(Char::uppercase)} at ${
+                                                text = "${
+                                                    timeTrigger.startWeekday.toString().lowercase()
+                                                        .replaceFirstChar(Char::uppercase)
+                                                } at ${
                                                     LocalDateTime.ofEpochSecond(
                                                         timeTrigger.startTime.toLong(),
                                                         0,
@@ -165,13 +168,18 @@ fun RuleDetailsScreen(
                                                 text = "End",
                                                 style = MaterialTheme.typography.h6
                                             )
-                                            Text(text = "${timeTrigger.endWeekday.toString().lowercase().replaceFirstChar(Char::uppercase)} at ${
-                                                LocalDateTime.ofEpochSecond(
-                                                    timeTrigger.endTime.toLong(),
-                                                    0,
-                                                    ZoneOffset.UTC
-                                                ).format(formatter)
-                                            }")
+                                            Text(
+                                                text = "${
+                                                    timeTrigger.endWeekday.toString().lowercase()
+                                                        .replaceFirstChar(Char::uppercase)
+                                                } at ${
+                                                    LocalDateTime.ofEpochSecond(
+                                                        timeTrigger.endTime.toLong(),
+                                                        0,
+                                                        ZoneOffset.UTC
+                                                    ).format(formatter)
+                                                }"
+                                            )
                                         }
                                     }
                                 }
@@ -263,6 +271,54 @@ fun RuleDetailsScreen(
                 Column() {
                     Text("Action", style = MaterialTheme.typography.h6)
                     Spacer(modifier = Modifier.height(5.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(.8f)
+                            .align(Alignment.CenterHorizontally)
+                            .border(
+                                BorderStroke(2.dp, MaterialTheme.colors.primary),
+                                RoundedCornerShape(5)
+                            )
+                    ) {
+                        if (state.rule != null) {
+                            val action = state.rule.content.act
+                            when (action.actionType) {
+                                "VolumeAction" -> {
+                                    val volAction =
+                                        Gson().fromJson(
+                                            action.actionObject,
+                                            VolumeAction::class.java
+                                        )
+                                    Column(modifier = Modifier.padding(10.dp)) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Text(text = "Type", style = MaterialTheme.typography.h6)
+                                            Text(text = "Volume action")
+                                        }
+                                        Spacer(modifier = Modifier.height(5.dp))
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Text(
+                                                text = "Action",
+                                                style = MaterialTheme.typography.h6
+                                            )
+                                            if (volAction.activateVolume == 2) {
+                                                Text(text = "Unmute")
+                                            } else {
+                                                Text(text = "Mute")
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
                 Column() {
                     Text("Operations", style = MaterialTheme.typography.h6)
