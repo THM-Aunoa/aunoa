@@ -238,8 +238,8 @@ class MainActivity : ComponentActivity(
                                         isRunning = false
                                         CoroutineScope(Dispatchers.Main).launch {
                                             if (stateUseCases.isFirstRun()) {
-                                                insertExamples()
                                                 stateUseCases.insertState(true)
+                                                insertExamples()
                                             }
                                             foregroundStartService("Start")
 
@@ -308,136 +308,137 @@ class MainActivity : ComponentActivity(
 
     suspend fun insertExamples() {
         cellUseCases.insertRegion("Home")
-        var xx: TriggerObject = CellTrigger(
-            name = "Zuhause"
+
+        val x1: TriggerObject = CellTrigger(
+            name = "Home"
         )
-        var yy: ActionObject = VolumeAction(
+        val y1: ActionObject = VolumeAction(
             activateVolume = 2,
             deactivateVolume = 0
         )
         ruleUseCases.insertRule(
-            trigger = xx,
-            action = yy,
+            trigger = x1,
+            action = y1,
             title = "Cell-Trigger",
             description = "Zuhause Ton an",
             priority = 9,
         )
 
-        xx = TimeTrigger(
+        val x2 = TimeTrigger(
             startTime = 79200,
             endTime = 28800,
             startWeekday = DayOfWeek.SUNDAY,
             endWeekday = DayOfWeek.MONDAY,
         )
-        yy = VolumeAction(
+        val y2 = VolumeAction(
             activateVolume = 0,
             deactivateVolume = 2
         )
         ruleUseCases.insertRule(
-            trigger = xx,
-            action = yy,
+            trigger = x2,
+            action = y2,
             title = "Time-Trigger",
             description = "Sonntag Nachts auf lautlos",
             priority = 10,
         )
-        xx = TimeTrigger(
+        val x3 = TimeTrigger(
             startTime = 79200,
             endTime = 28800,
             startWeekday = DayOfWeek.MONDAY,
             endWeekday = DayOfWeek.TUESDAY,
         )
-        yy = VolumeAction(
+        val y3 = VolumeAction(
             activateVolume = 0,
             deactivateVolume = 2
         )
         ruleUseCases.insertRule(
-            trigger = xx,
-            action = yy,
+            trigger = x3,
+            action = y3,
             title = "Time-Trigger",
             description = "Montag Nachts auf lautlos",
             priority = 10,
         )
-        xx = TimeTrigger(
+        val x4 = TimeTrigger(
             startTime = 79200,
             endTime = 28800,
             startWeekday = DayOfWeek.TUESDAY,
             endWeekday = DayOfWeek.WEDNESDAY,
         )
-        yy = VolumeAction(
+        val y4 = VolumeAction(
             activateVolume = 0,
             deactivateVolume = 2
         )
         ruleUseCases.insertRule(
-            trigger = xx,
-            action = yy,
+            trigger = x4,
+            action = y4,
             title = "Time-Trigger",
             description = "Dienstag Nachts auf lautlos",
             priority = 10,
         )
-        xx = TimeTrigger(
+        val x5 = TimeTrigger(
             startTime = 79200,
             endTime = 28800,
             startWeekday = DayOfWeek.WEDNESDAY,
             endWeekday = DayOfWeek.THURSDAY,
         )
-        yy = VolumeAction(
+        val y5 = VolumeAction(
             activateVolume = 0,
             deactivateVolume = 2
         )
         ruleUseCases.insertRule(
-            trigger = xx,
-            action = yy,
+            trigger = x5,
+            action = y5,
             title = "Time-Trigger",
             description = "Mittwoch Nachts auf lautlos",
             priority = 10,
         )
-        xx = TimeTrigger(
+        val x6 = TimeTrigger(
             startTime = 79200,
             endTime = 28800,
             startWeekday = DayOfWeek.THURSDAY,
             endWeekday = DayOfWeek.FRIDAY,
         )
-        yy = VolumeAction(
+        val y6 = VolumeAction(
             activateVolume = 0,
             deactivateVolume = 2
         )
         ruleUseCases.insertRule(
-            trigger = xx,
-            action = yy,
+            trigger = x6,
+            action = y6,
             title = "Time-Trigger",
             description = "Donnerstag Nachts auf lautlos",
             priority = 10,
         )
-        xx = TimeTrigger(
+        val x7 = TimeTrigger(
             startTime = 39000,
             endTime = 32400,
             startWeekday = DayOfWeek.FRIDAY,
             endWeekday = DayOfWeek.SATURDAY,
         )
-        yy = VolumeAction(
+        val y7 = VolumeAction(
             activateVolume = 0,
             deactivateVolume = 2
         )
         ruleUseCases.insertRule(
-            trigger = xx,
-            action = yy,
+            trigger = x7,
+            action = y7,
             title = "Time-Trigger",
             description = "Freitag Nachts auf lautlos",
             priority = 10,
         )
-        xx = TimeTrigger(
+        val x8 = TimeTrigger(
             startTime = 85800,
             endTime = 32400,
             startWeekday = DayOfWeek.SATURDAY,
             endWeekday = DayOfWeek.SUNDAY,
         )
-        yy = VolumeAction(
+        val y8 = VolumeAction(
             activateVolume = 0,
             deactivateVolume = 2
         )
         ruleUseCases.insertRule(
-            trigger = xx,
-            action = yy,
+            trigger = x8,
+            action = y8,
             title = "Time-Trigger",
             description = "Samstag Nachts auf lautlos",
             priority = 10,

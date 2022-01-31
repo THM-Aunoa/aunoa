@@ -9,11 +9,11 @@ import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.SpotifyAction
 import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.VolumeAction
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.*
 import de.mseprojekt.aunoa.feature_app.domain.repository.RuleRepository
-import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.*
 
 class InsertRule(
     private val repository: RuleRepository
 ) {
+    @Synchronized
     suspend operator fun invoke(
         action: ActionObject,
         trigger: TriggerObject,
@@ -51,6 +51,9 @@ class InsertRule(
                 "SpotifyAction"
             }
             else -> {
+                if (ruleId != null) {
+                    repository.deleteRule(ruleId)
+                }
                 return -1
             }
         }
@@ -75,6 +78,9 @@ class InsertRule(
                 "CellTrigger"
             }
             else -> {
+                if (ruleId != null) {
+                    repository.deleteRule(ruleId)
+                }
                 return -1
             }
         }

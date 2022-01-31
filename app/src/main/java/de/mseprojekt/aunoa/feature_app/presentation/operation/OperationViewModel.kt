@@ -1,5 +1,8 @@
 package de.mseprojekt.aunoa.feature_app.presentation.operation
 
+import android.app.Application
+import android.content.Intent
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -11,20 +14,28 @@ import de.mseprojekt.aunoa.feature_app.domain.use_case.state.StateUseCases
 import de.mseprojekt.aunoa.feature_app.domain.use_case.user.UserUseCases
 import de.mseprojekt.aunoa.other.AunoaEventInterface
 import de.mseprojekt.aunoa.other.AunoaViewModelInterface
+import de.mseprojekt.aunoa.services.AunoaService
+import de.mseprojekt.aunoa.services.INTENT_COMMAND
+import de.mseprojekt.aunoa.services.INTENT_SCAN_REGION
+import de.mseprojekt.aunoa.services.INTENT_SCAN_UNTIL
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 import javax.inject.Inject
 
 @HiltViewModel
+@ExperimentalMaterialApi
 class OperationViewModel @Inject constructor(
     private val operationsUseCases: OperationsUseCases,
     private val userUseCases: UserUseCases,
     private val stateUseCases: StateUseCases,
     private val cellUseCases: CellUseCases,
+    private val application: Application
 ) : ViewModel(), AunoaViewModelInterface {
 
     private val _state = mutableStateOf(OperationState())
@@ -83,6 +94,13 @@ class OperationViewModel @Inject constructor(
                     _state.value = _state.value.copy(
                         appState = event.value
                     )
+                    val intent2 = Intent(application, AunoaService::class.java)
+                    if (event.value){
+                        intent2.putExtra(INTENT_COMMAND, "Start")
+                    } else{
+                        intent2.putExtra(INTENT_COMMAND, "Exit")
+                    }
+                    application.startForegroundService(intent2)
                 }
             }
             is OperationEvent.DeleteRegion -> {
@@ -103,6 +121,12 @@ class OperationViewModel @Inject constructor(
                             regions = regions
                         )
                     }
+                    val intent2 = Intent(application, AunoaService::class.java)
+                    intent2.putExtra(INTENT_COMMAND, "Scan")
+                    intent2.putExtra(INTENT_SCAN_UNTIL, LocalDateTime.now().plusMinutes(event.minutes).toEpochSecond(
+                        ZoneOffset.UTC).toString())
+                    intent2.putExtra(INTENT_SCAN_REGION, "Home")
+                    application.startForegroundService(intent2)
                 }
             }
         }

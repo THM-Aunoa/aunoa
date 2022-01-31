@@ -146,9 +146,6 @@ class AunoaService: Service() {
                 val region = intent.getStringExtra(INTENT_SCAN_REGION)
                 val regionId = region?.let { cellUseCases.getRegionIdByName(it) }
                 val until = intent.getStringExtra(INTENT_SCAN_UNTIL)?.toLong()
-                Log.d("s", until.toString())
-                Log.d("a", regionId.toString())
-                Log.d("s", region.toString())
                 if (region?.isNotEmpty()!! && regionId != null && until != null) {
                     scanMode = true
                     scanUntil = LocalDateTime.ofEpochSecond(
@@ -165,7 +162,6 @@ class AunoaService: Service() {
         if (command == INTENT_COMMAND_START && !this.isrunning){
             if (stateUseCases.getCurrentState()) {
                 this.isrunning = true
-                Log.d("Test123", rulesHubUseCases.getHubRules().toString())
                 showNotification()
                 runService()
             }
@@ -193,9 +189,9 @@ class AunoaService: Service() {
         CoroutineScope(Dispatchers.Main).launch {
             val telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
             val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-
+            delay(5000)
             updateRuleList()
-            Log.d("a", rules.toString())
+            Log.d("All rules: ", rules.toString())
             if (requestLocation) {
                 requestLocation()
                 delay(20000)
@@ -509,123 +505,143 @@ class AunoaService: Service() {
     }
 
     suspend fun updateRuleList(){
+        delay(1000)
         Log.d("Update", "Updating Rule List")
         val gson = Gson()
-        val newRules = ruleUseCases.getRulesWithoutFlow()
-        val oldSpotify = useSpotify
-        mutex.withLock {
-            rules = ArrayList()
-            requestLocation = false
-            requestCellId = false
-            useSpotify = false
-            for (i in ACTION_OBJECTS.indices) {
-                rules.add(ArrayList())
-            }
-            for (newRule in newRules) {
-                if (newRule.content.trig.triggerType == "LocationTrigger") {
-                    requestLocation = true
-                }
-                if (newRule.content.trig.triggerType == "CellTrigger") {
-                    requestCellId = true
-                }
-                if (newRule.content.act.actionType == "SpotifyAction") {
-                    useSpotify = true
-                }
-                var index = -1
+        try {
+            val newRules = ruleUseCases.getRulesWithoutFlow()
+            val oldSpotify = useSpotify
+            mutex.withLock {
+                rules = ArrayList()
+                requestLocation = false
+                requestCellId = false
+                useSpotify = false
                 for (i in ACTION_OBJECTS.indices) {
-                    if (ACTION_OBJECTS[i] == newRule.content.act.actionType) {
-                        index = i
-                    }
+                    rules.add(ArrayList())
                 }
-                if (index == -1) {
-                    Log.d("Database-Error", "Unsupported Action Type in Database")
-                    return
-                }
-                val act: ActionObject = when (newRule.content.act.actionType) {
-                    "VolumeAction" -> {
-                        gson.fromJson(newRule.content.act.actionObject, VolumeAction::class.java)
+                for (newRule in newRules) {
+                    if (newRule.content.trig.triggerType == "LocationTrigger") {
+                        requestLocation = true
                     }
-                    "SpotifyAction" ->{
-                        gson.fromJson(newRule.content.act.actionObject, SpotifyAction::class.java)
+                    if (newRule.content.trig.triggerType == "CellTrigger") {
+                        requestCellId = true
                     }
-                    else -> {
+                    if (newRule.content.act.actionType == "SpotifyAction") {
+                        useSpotify = true
+                    }
+                    var index = -1
+                    for (i in ACTION_OBJECTS.indices) {
+                        if (ACTION_OBJECTS[i] == newRule.content.act.actionType) {
+                            index = i
+                        }
+                    }
+                    if (index == -1) {
                         Log.d("Database-Error", "Unsupported Action Type in Database")
-                        continue
+                        return
                     }
-                }
-                val trig: TriggerObject = when (newRule.content.trig.triggerType) {
-                    "TimeTrigger" -> {
-                        gson.fromJson(newRule.content.trig.triggerObject, TimeTrigger::class.java)
+                    val act: ActionObject = when (newRule.content.act.actionType) {
+                        "VolumeAction" -> {
+                            gson.fromJson(
+                                newRule.content.act.actionObject,
+                                VolumeAction::class.java
+                            )
+                        }
+                        "SpotifyAction" -> {
+                            gson.fromJson(
+                                newRule.content.act.actionObject,
+                                SpotifyAction::class.java
+                            )
+                        }
+                        else -> {
+                            Log.d("Database-Error", "Unsupported Action Type in Database")
+                            continue
+                        }
                     }
-                    "LocationTrigger" -> {
-                        gson.fromJson(
-                            newRule.content.trig.triggerObject,
-                            LocationTrigger::class.java
-                        )
+                    val trig: TriggerObject = when (newRule.content.trig.triggerType) {
+                        "TimeTrigger" -> {
+                            gson.fromJson(
+                                newRule.content.trig.triggerObject,
+                                TimeTrigger::class.java
+                            )
+                        }
+                        "LocationTrigger" -> {
+                            gson.fromJson(
+                                newRule.content.trig.triggerObject,
+                                LocationTrigger::class.java
+                            )
+                        }
+                        "WifiTrigger" -> {
+                            gson.fromJson(
+                                newRule.content.trig.triggerObject,
+                                WifiTrigger::class.java
+                            )
+                        }
+                        "BluetoothTrigger" -> {
+                            gson.fromJson(
+                                newRule.content.trig.triggerObject,
+                                BluetoothTrigger::class.java
+                            )
+                        }
+                        "NfcTrigger" -> {
+                            gson.fromJson(
+                                newRule.content.trig.triggerObject,
+                                NfcTrigger::class.java
+                            )
+                        }
+                        "CellTrigger" -> {
+                            val temp = gson.fromJson(
+                                newRule.content.trig.triggerObject,
+                                CellTrigger::class.java
+                            )
+                            val id = cellUseCases.getRegionIdByName(temp.name)
+                            if (id != null) {
+                                val list = mutableListOf<Long>()
+                                list.addAll(cellUseCases.getCellIdsByRegion(temp.name))
+                                CellWithIdsTrigger(
+                                    cellIds = list,
+                                    id = id
+                                )
+                            } else {
+                                Log.d("Database-Error", "Unsupported Region Name")
+                                continue
+                            }
+                        }
+                        else -> {
+                            Log.d("Database-Error", "Unsupported Trigger Type in Database")
+                            continue
+                        }
                     }
-                    "WifiTrigger" ->{
-                        gson.fromJson(
-                            newRule.content.trig.triggerObject,
-                            WifiTrigger::class.java
-                        )
-                    }
-                    "BluetoothTrigger" -> {
-                        gson.fromJson(
-                            newRule.content.trig.triggerObject,
-                            BluetoothTrigger::class.java
-                        )
-                    }
-                    "NfcTrigger" -> {
-                        gson.fromJson(
-                            newRule.content.trig.triggerObject,
-                            NfcTrigger::class.java
-                        )
-                    }
-                    "CellTrigger" -> {
-                        val temp = gson.fromJson(
-                            newRule.content.trig.triggerObject,
-                            CellTrigger::class.java
-                        )
-                        val list = mutableListOf<Long>()
-                        list.addAll(cellUseCases.getCellIdsByRegion(temp.name))
-                        CellWithIdsTrigger(
-                            cellIds = list,
-                            id = cellUseCases.getRegionIdByName(temp.name)
-                        )
-                    }
-                    else -> {
-                        Log.d("Database-Error", "Unsupported Trigger Type in Database")
-                        continue
-                    }
-                }
 
-                val ruleToAppend = UnzippedRule(
-                    rule = newRule.rule,
-                    action = act,
-                    trigger = trig
-                )
-                if (rules[index].size == 0) {
-                    rules[index].add(ruleToAppend)
-                    continue
-                }
-                if (newRule.rule.priority <= rules[index][rules[index].size - 1].rule.priority) {
-                    rules[index].add(rules[index].size, ruleToAppend)
-                    continue
-                }
-                for (i in 0 until rules[index].size) {
-                    if (newRule.rule.priority > rules[index][i].rule.priority) {
-                        rules[index].add(i, ruleToAppend)
-                        break
+                    val ruleToAppend = UnzippedRule(
+                        rule = newRule.rule,
+                        action = act,
+                        trigger = trig
+                    )
+                    if (rules[index].size == 0) {
+                        rules[index].add(ruleToAppend)
+                        continue
+                    }
+                    if (newRule.rule.priority <= rules[index][rules[index].size - 1].rule.priority) {
+                        rules[index].add(rules[index].size, ruleToAppend)
+                        continue
+                    }
+                    for (i in 0 until rules[index].size) {
+                        if (newRule.rule.priority > rules[index][i].rule.priority) {
+                            rules[index].add(i, ruleToAppend)
+                            break
+                        }
                     }
                 }
             }
-        }
-        if (oldSpotify && !useSpotify){
-            exitSpotify()
-        }
-        if (!oldSpotify && useSpotify){
-            startSpotify(this)
-            delay(10000)
+            if (oldSpotify && !useSpotify) {
+                exitSpotify()
+            }
+            if (!oldSpotify && useSpotify) {
+                startSpotify(this)
+                delay(10000)
+            }
+        } catch (e: Exception){
+            Log.d("Update Rule List","Update Error appeared")
         }
     }
 

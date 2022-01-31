@@ -29,5 +29,5 @@ interface CellDao {
     fun getRegions(): List<Region>
 
     @Query("SELECT regionId FROM region WHERE name = :name")
-    fun getRegionIdByName(name: String) : Int
+    fun getRegionIdByName(name: String) : Int?
 }

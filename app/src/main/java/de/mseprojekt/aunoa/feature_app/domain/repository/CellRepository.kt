@@ -5,7 +5,7 @@ import de.mseprojekt.aunoa.feature_app.domain.model.Region
 interface CellRepository {
 
     fun getCellIdsByRegion(name: String): List<Long>
-    fun getRegionIdByName(name: String): Int
+    fun getRegionIdByName(name: String): Int?
     suspend fun insertRegion(name: String)
     suspend fun deleteRegion(id: Int)
     fun insertCell(regionId: Int, cellId: Long)
