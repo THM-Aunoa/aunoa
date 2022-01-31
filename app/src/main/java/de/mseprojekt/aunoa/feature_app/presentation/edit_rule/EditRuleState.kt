@@ -36,5 +36,9 @@ data class EditRuleState(
     val triggerObjectName: String = "",
     val trigger: TriggerObject? = null,
     val tags: List<Tag> = emptyList(),
-    val regions: List<Region> = emptyList()
+    val regions: List<Region> = emptyList(),
+    val startTimeHour: Int = 12,
+    val startTimeMinutes: Int = 15,
+    val endTimeHour: Int = 18,
+    val endTimeMinutes: Int = 30,
 )

@@ -29,6 +29,8 @@ import de.mseprojekt.aunoa.services.INTENT_COMMAND
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import java.time.DayOfWeek
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -53,6 +55,27 @@ class EditRuleViewModel @Inject constructor(
     val eventFlow = _eventFlow.asSharedFlow()
 
     init {
+        viewModelScope.launch {
+            cellUseCases.getRegions().also { regions ->
+                _state.value = _state.value.copy(
+                    regions = regions,
+                    cellTrigger = _state.value.cellTrigger.copy(
+                        name = regions.first().name
+                    )
+                )
+            }
+            requestCurrentLocation().addOnCompleteListener { task: Task<Location> ->
+                if (task.isSuccessful && task.result != null) {
+                    _state.value = _state.value.copy(
+                        locationTrigger = LocationTrigger(
+                            latitude = task.result.latitude,
+                            longitude = task.result.longitude,
+                            radius = 10.0
+                        )
+                    )
+                }
+            }
+        }
         savedStateHandle.get<Int>("ruleId")?.let { ruleId ->
             if (ruleId != -1) {
                 viewModelScope.launch {
@@ -86,10 +109,16 @@ class EditRuleViewModel @Inject constructor(
                                         rule.content.trig.triggerObject,
                                         TimeTrigger::class.java
                                     )
+                                val startTime = getHoursAndMinutes(trigger.startTime)
+                                val endTime = getHoursAndMinutes(trigger.endTime)
                                 _state.value = _state.value.copy(
                                     trigger = trigger,
                                     timeTrigger = trigger,
-                                    triggerObjectName = "TimeTrigger"
+                                    triggerObjectName = "TimeTrigger",
+                                    startTimeHour = startTime.hours,
+                                    startTimeMinutes = startTime.minutes,
+                                    endTimeHour = endTime.hours,
+                                    endTimeMinutes = endTime.minutes
                                 )
                             }
                             "LocationTrigger" -> {
@@ -108,13 +137,6 @@ class EditRuleViewModel @Inject constructor(
 
                     }
                 }
-            }
-        }
-        viewModelScope.launch {
-            cellUseCases.getRegions().also { regions ->
-                _state.value = _state.value.copy(
-                    regions = regions
-                )
             }
         }
     }
@@ -146,6 +168,11 @@ class EditRuleViewModel @Inject constructor(
                         _eventFlow.emit(UiEvent.DeleteRule(message = "Nothing to delete"))
                     }
                 }
+            }
+            is EditRuleEvent.RemoveTrigger -> {
+                _state.value = _state.value.copy(
+                    triggerObjectName = ""
+                )
             }
             is EditRuleEvent.EnteredTitle -> {
                 _state.value = _state.value.copy(
@@ -190,6 +217,49 @@ class EditRuleViewModel @Inject constructor(
                     )
                 )
             }
+            is EditRuleEvent.EnteredStartDay -> {
+                _state.value = _state.value.copy(
+                    timeTrigger = _state.value.timeTrigger!!.copy(
+                        startWeekday = DayOfWeek.valueOf(event.value)
+                    )
+                )
+            }
+            is EditRuleEvent.EnteredStartTimeHour -> {
+                val newTime = state.value.startTimeMinutes + event.value.toInt() * 3600
+                _state.value = _state.value.copy(
+                    startTimeHour = event.value.toInt(),
+                    timeTrigger = _state.value.timeTrigger!!.copy(
+                        startTime = newTime
+                    )
+                )
+            }
+            is EditRuleEvent.EnteredStartTimeMinutes -> {
+                val newTime = state.value.startTimeHour + event.value.toInt() * 60
+                _state.value = _state.value.copy(
+                    startTimeHour = event.value.toInt(),
+                    timeTrigger = _state.value.timeTrigger!!.copy(
+                        startTime = newTime
+                    )
+                )
+            }
+            is EditRuleEvent.EnteredEndTimeHour -> {
+                val newTime = state.value.endTimeMinutes + event.value.toInt() * 3600
+                _state.value = _state.value.copy(
+                    endTimeHour = event.value.toInt(),
+                    timeTrigger = _state.value.timeTrigger!!.copy(
+                        endTime = newTime
+                    )
+                )
+            }
+            is EditRuleEvent.EnteredEndTimeMinutes -> {
+                val newTime = state.value.endTimeHour + event.value.toInt() * 60
+                _state.value = _state.value.copy(
+                    endTimeHour = event.value.toInt(),
+                    timeTrigger = _state.value.timeTrigger!!.copy(
+                        endTime = newTime
+                    )
+                )
+            }
             is EditRuleEvent.AddTag -> {
                 val newTags = state.value.tags + Tag(title = event.value)
                 _state.value = _state.value.copy(
@@ -206,7 +276,7 @@ class EditRuleViewModel @Inject constructor(
                 requestCurrentLocation().addOnCompleteListener { task: Task<Location> ->
                     if (task.isSuccessful && task.result != null) {
                         _state.value = _state.value.copy(
-                            trigger = LocationTrigger(
+                            locationTrigger = LocationTrigger(
                                 latitude = task.result.latitude,
                                 longitude = task.result.longitude,
                                 radius = 10.0
@@ -222,6 +292,7 @@ class EditRuleViewModel @Inject constructor(
                         when (state.value.triggerObjectName) {
                             "LocationTrigger" -> trigger = state.value.locationTrigger
                             "CellTrigger" -> trigger = state.value.cellTrigger
+                            "TimeTrigger" -> trigger = state.value.timeTrigger
                         }
                         val ruleId = ruleUseCases.insertRule(
                             trigger = trigger!!,
@@ -265,6 +336,14 @@ class EditRuleViewModel @Inject constructor(
         data class ShowSnackbar(val message: String) : UiEvent()
         data class SaveRule(val message: String) : UiEvent()
         data class DeleteRule(val message: String) : UiEvent()
+    }
+
+    data class Time(val hours: Int, val minutes: Int)
+
+    private fun getHoursAndMinutes(seconds: Int): Time {
+        val hours = seconds / 3600
+        val minutes = (seconds % 3600) / 60
+        return Time(hours, minutes)
     }
 
     @SuppressLint("MissingPermission")

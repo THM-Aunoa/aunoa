@@ -18,10 +18,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.google.gson.Gson
-import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.LocationTrigger
-import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TimeTrigger
-import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TriggerObject
 import de.mseprojekt.aunoa.feature_app.presentation.util.bottom_navigation_bar.BottomNavigationBar
 import de.mseprojekt.aunoa.feature_app.presentation.util.chip.AunoaChip
 import de.mseprojekt.aunoa.feature_app.presentation.util.spinner.Spinner
@@ -322,12 +318,21 @@ fun LocationTriggerEdit(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(text = "Location Trigger", style = MaterialTheme.typography.h6)
-            IconButton(onClick = { viewModel.onEvent(EditRuleEvent.RemoveTrigger) }) {
-                Icon(
-                    imageVector = Icons.Filled.Delete,
-                    contentDescription = "Remove Trigger",
-                    tint = Color.Gray,
-                )
+            Row() {
+                IconButton(onClick = { viewModel.onEvent(EditRuleEvent.FillCurrentLocationBoxes) }) {
+                    Icon(
+                        imageVector = Icons.Filled.MyLocation,
+                        contentDescription = "Get your location",
+                        tint = Color.Gray,
+                    )
+                }
+                IconButton(onClick = { viewModel.onEvent(EditRuleEvent.RemoveTrigger) }) {
+                    Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = "Remove Trigger",
+                        tint = Color.Gray,
+                    )
+                }
             }
         }
         OutlinedTextField(
@@ -361,7 +366,9 @@ fun LocationTriggerEdit(
 fun TimeTriggerEdit(
     viewModel: EditRuleViewModel = hiltViewModel()
 ) {
-    val state = viewModel.state.value.timeTrigger
+    val triggerState = viewModel.state.value.timeTrigger
+    val state = viewModel.state.value
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -388,45 +395,42 @@ fun TimeTriggerEdit(
             }
         }
         Text(text = "Start")
-        Row(modifier = Modifier.fillMaxWidth()) {
-            OutlinedTextField(
-                value = state.startWeekday.toString(),
-                onValueChange = { viewModel.onEvent(EditRuleEvent.EnteredStartDay(it)) },
-                label = { Text("Weekday") },
-                modifier = Modifier
-                    .fillMaxWidth(.4f)
-            )
-            Spacer(modifier = Modifier.width(10.dp))
-            OutlinedTextField(
-                value = state.startTime.toString(),
-                onValueChange = { viewModel.onEvent(EditRuleEvent.EnteredStartTime(it)) },
-                label = { Text("Time") },
-                modifier = Modifier
-                    .fillMaxWidth(.4f)
-            )
-        }
-        Spacer(modifier = Modifier.height(10.dp))
-        Spinner(options = (0..24).map { it.toString() })
+        Spinner(
+            label = "Weekday",
+            options = listOf("MONDAY", "TUESDAY", "WEDNESDAY"),
+            selected = triggerState.startWeekday.toString(),
+            callback = { value -> viewModel.onEvent(EditRuleEvent.EnteredStartDay(value)) })
+        Spinner(
+            label = "Hour",
+            options = (0..23).map { it.toString() },
+            selected = state.startTimeHour.toString(),
+            callback = { value -> viewModel.onEvent(EditRuleEvent.EnteredStartTimeHour(value)) }
+        )
+        Spinner(
+            label = "Minutes",
+            options = (0..59).map { it.toString() },
+            selected = state.startTimeMinutes.toString(),
+            callback = { value -> viewModel.onEvent(EditRuleEvent.EnteredStartTimeMinutes(value)) }
+        )
         Spacer(modifier = Modifier.height(10.dp))
         Text(text = "End")
-        Row(modifier = Modifier.fillMaxWidth()) {
-            OutlinedTextField(
-                value = state.endWeekday.toString(),
-                onValueChange = { viewModel.onEvent(EditRuleEvent.EnteredEndDay(it)) },
-                label = { Text("Weekday") },
-                modifier = Modifier
-                    .fillMaxWidth(.4f)
-            )
-            Spacer(modifier = Modifier.width(10.dp))
-            OutlinedTextField(
-                value = state.endTime.toString(),
-                onValueChange = { viewModel.onEvent(EditRuleEvent.EnteredEndTime(it)) },
-                label = { Text("Time") },
-                modifier = Modifier
-                    .fillMaxWidth(.4f)
-            )
-
-        }
+        Spinner(
+            label = "Weekday",
+            options = listOf("MONDAY", "TUESDAY", "WEDNESDAY"),
+            selected = triggerState.endWeekday.toString(),
+            callback = { value -> viewModel.onEvent(EditRuleEvent.EnteredEndDay(value)) })
+        Spinner(
+            label = "Hour",
+            options = (0..23).map { it.toString() },
+            selected = state.endTimeHour.toString(),
+            callback = { value -> viewModel.onEvent(EditRuleEvent.EnteredEndTimeHour(value)) }
+        )
+        Spinner(
+            label = "Minutes",
+            options = (0..59).map { it.toString() },
+            selected = state.endTimeMinutes.toString(),
+            callback = { value -> viewModel.onEvent(EditRuleEvent.EnteredEndTimeMinutes(value)) }
+        )
     }
 }
 
@@ -484,7 +488,7 @@ fun ShowTimePicker(context: Context, initHour: Int, initMinute: Int) {
     val time = remember { mutableStateOf("") }
     val timePickerDialog = TimePickerDialog(
         context,
-        {_, hour : Int, minute: Int ->
+        { _, hour: Int, minute: Int ->
             time.value = "$hour:$minute"
         }, initHour, initMinute, false
     )

@@ -14,9 +14,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun Spinner(options: List<String>) {
+fun Spinner(label: String, options: List<String>, selected: String, callback: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    var selectedText by remember { mutableStateOf("") }
+    var selectedText by remember { mutableStateOf(selected) }
 
     val icon = if (expanded)
         Icons.Filled.KeyboardArrowUp
@@ -32,7 +32,7 @@ fun Spinner(options: List<String>) {
                 .fillMaxWidth()
                 .padding(10.dp)
                 .clickable { expanded = !expanded },
-            label = { Text("Hour") },
+            label = { Text(label) },
             trailingIcon = {
                 Icon(icon, "", Modifier.clickable { expanded = !expanded })
             }
@@ -44,9 +44,11 @@ fun Spinner(options: List<String>) {
         ) {
                 options.forEach { option ->
                     DropdownMenuItem(onClick = {
+                        selectedText = option
+                        expanded = false
+                        callback(option)
                     }) {
                         Text(text = option)
-                        expanded = false
                     }
                 }
         }

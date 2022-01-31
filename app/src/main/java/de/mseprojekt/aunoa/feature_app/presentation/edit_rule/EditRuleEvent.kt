@@ -11,9 +11,11 @@ sealed class EditRuleEvent {
     data class EnteredPriority(val value: Int): EditRuleEvent()
 
     data class EnteredStartDay(val value: String): EditRuleEvent()
-    data class EnteredStartTime(val value: String): EditRuleEvent()
+    data class EnteredStartTimeHour(val value: String): EditRuleEvent()
+    data class EnteredStartTimeMinutes(val value: String): EditRuleEvent()
     data class EnteredEndDay(val value: String): EditRuleEvent()
-    data class EnteredEndTime(val value: String): EditRuleEvent()
+    data class EnteredEndTimeHour(val value: String): EditRuleEvent()
+    data class EnteredEndTimeMinutes(val value: String): EditRuleEvent()
 
     data class ChoosedTrigger(val value: String): EditRuleEvent()
     data class ChoosedRegion(val value: String): EditRuleEvent()
