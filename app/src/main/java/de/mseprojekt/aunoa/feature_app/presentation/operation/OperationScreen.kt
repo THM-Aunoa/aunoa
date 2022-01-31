@@ -291,10 +291,11 @@ fun SettingsScreen(
 ) {
     val scrollState = rememberScrollState()
     var openRegionDialog = remember { mutableStateOf(false) }
-    var newRegionText by remember { mutableStateOf("") }
-    var newRegionTime by remember { mutableStateOf("10") }
     val appState = viewModel.state.value.appState
     val regions = viewModel.state.value.regions
+    var regionName by remember { mutableStateOf(" ") }
+    var regionTime by remember { mutableStateOf("10") }
+    var regionId by remember { mutableStateOf(-1) }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -346,6 +347,20 @@ fun SettingsScreen(
                 Column() {
                     regions.forEach { region ->
                         ListItem(text = { Text(text = region.name) }, trailing = {
+                            Row(){
+                            IconButton(
+                                onClick = {
+                                    regionName = region.name
+                                    regionTime = "10"
+                                    regionId = region.regionId!!
+                                    openRegionDialog.value = true },
+                            ) {
+                                Icon(
+                                    Icons.Filled.Edit,
+                                    contentDescription = "Edit Region",
+                                    tint = Color.Black
+                                )
+                            }
                             IconButton(
                                 onClick = { viewModel.onEvent(OperationEvent.DeleteRegion(region.regionId!!)) },
                             ) {
@@ -355,11 +370,17 @@ fun SettingsScreen(
                                     tint = Color.Red
                                 )
                             }
+                        }
                         })
                     }
                 }
                 Spacer(modifier = Modifier.height(5.dp))
-                Button(onClick = { openRegionDialog.value = true }) {
+                Button(onClick = {
+                    regionName = ""
+                    regionTime = "10"
+                    regionId = -1
+                    openRegionDialog.value = true
+                }) {
                     Text(text = "Add region")
                 }
             }
@@ -367,41 +388,78 @@ fun SettingsScreen(
     }
 
     if (openRegionDialog.value) {
-        AlertDialog(
-            onDismissRequest = {
-                openRegionDialog.value = false
-            },
-            text = {
-                Column() {
-                    Text(text = "Please enter a Region name")
+        RegionDialog(viewModel, openRegionDialog, regionName, regionTime, regionId)
+    }
+}
+
+@ExperimentalMaterialApi
+@Composable
+fun RegionDialog(
+    viewModel: OperationViewModel = hiltViewModel(),
+    openRegionDialog: MutableState<Boolean>,
+    regionText: String = "",
+    regionTime: String = "10",
+    id: Int = -1
+) {
+    var newRegionText by remember { mutableStateOf(regionText) }
+    var newRegionTime by remember { mutableStateOf(regionTime) }
+    AlertDialog(
+        onDismissRequest = {
+            openRegionDialog.value = false
+        },
+        text = {
+            Column() {
+                Text(text = "Please enter a Region name")
+                if (id == -1) {
                     TextField(
                         value = newRegionText,
-                        onValueChange = { newRegionText = it }
+                        onValueChange = { newRegionText = it },
                     )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(text = "Please choose the scanning time in min")
-                    TextField(value = newRegionTime, onValueChange = {newRegionTime= it}, keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number))
+                }else{
+                    TextField(
+                        value = newRegionText,
+                        onValueChange = { newRegionText = it },
+                        enabled = false
+                    )
                 }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.onEvent(OperationEvent.AddRegion(newRegionText, newRegionTime.toLong()))
-                        openRegionDialog.value = false
-                    }) {
-                    Text("Add Region")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        openRegionDialog.value = false
-                    }) {
-                    Text("Cancel")
-                }
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(text = "Please choose the scanning time in min")
+                TextField(value = newRegionTime, onValueChange = {newRegionTime= it}, keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number))
             }
-        )
-    }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (id == -1) {
+                        viewModel.onEvent(
+                            OperationEvent.AddRegion(
+                                newRegionText,
+                                newRegionTime.toLong()
+                            )
+                        )
+                    }else{
+                        viewModel.onEvent(
+                            OperationEvent.EditRegion(
+                                id,
+                                newRegionText,
+                                newRegionTime.toLong()
+                            )
+                        )
+                    }
+                    openRegionDialog.value = false
+                }) {
+                Text("Add Region")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    openRegionDialog.value = false
+                }) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 

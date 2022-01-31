@@ -30,10 +30,8 @@ class CellRepositoryImpl (
         return future!!.get()
     }
 
-    override suspend fun insertRegion(name: String) {
-        if (getRegionIdByName(name) == null) {
-            cellDao.insertRegion(Region(name = name))
-        }
+    override suspend fun insertRegion(region : Region) {
+        cellDao.insertRegion(region)
     }
 
     override fun getRegionNameById(id: Int): String?{

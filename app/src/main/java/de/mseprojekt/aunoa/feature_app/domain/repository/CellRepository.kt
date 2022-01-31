@@ -6,7 +6,7 @@ interface CellRepository {
 
     fun getCellIdsByRegion(name: String): List<Long>
     fun getRegionIdByName(name: String): Int?
-    suspend fun insertRegion(name: String)
+    suspend fun insertRegion(region : Region)
     fun deleteRegion(id: Int)
     fun insertCell(regionId: Int, cellId: Long)
     suspend fun deleteCell(cellId: Long)

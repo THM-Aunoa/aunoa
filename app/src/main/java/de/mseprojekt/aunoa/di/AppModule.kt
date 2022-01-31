@@ -127,7 +127,8 @@ object AppModule {
             removeCell = RemoveCell(repository),
             removeRegion = RemoveRegion(repository),
             getRegions = GetRegions(repository),
-            getRegionIdByName = GetRegionIdByName(repository)
+            getRegionIdByName = GetRegionIdByName(repository),
+            editRegion = EditRegion(repository)
         )
     }
     @Provides

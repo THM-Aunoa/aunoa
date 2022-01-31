@@ -8,5 +8,6 @@ sealed class OperationEvent : AunoaEventInterface{
     data class ToggleAppState(val value: Boolean): OperationEvent()
     data class DeleteRegion(val value: Int): OperationEvent()
     data class AddRegion(val value: String, val minutes: Long): OperationEvent()
+    data class EditRegion(val id: Int, val value: String, val minutes: Long): OperationEvent()
     object SaveUserDetails: OperationEvent()
 }
