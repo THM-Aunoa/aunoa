@@ -743,7 +743,7 @@ class AunoaService: Service() {
             setAutoCancel(false)
             setOngoing(true)
             setWhen(System.currentTimeMillis())
-            setSmallIcon(R.drawable.ic_directions_run_black_24dp)
+            setSmallIcon(R.drawable.ic_icon)
             priority = IMPORTANCE_LOW
             setContentIntent(replyPendingIntent)
             addAction(
