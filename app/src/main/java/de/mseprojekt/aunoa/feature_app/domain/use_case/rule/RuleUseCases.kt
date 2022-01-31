@@ -15,5 +15,6 @@ data class RuleUseCases(
   //  val getTagsForRule: GetTagsForRule,
     val insertRuleTagCrossRef: InsertRuleTagCrossRef,
     val insertTag: InsertTag,
-    val insertTags: InsertTags
+    val insertTags: InsertTags,
+    val clearTagsForRule: ClearTagsForRule
 )

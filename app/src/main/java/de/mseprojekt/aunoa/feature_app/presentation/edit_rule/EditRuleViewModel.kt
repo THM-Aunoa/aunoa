@@ -135,8 +135,6 @@ class EditRuleViewModel @Inject constructor(
                         ruleUseCases.insertRule(
                             trigger = state.value.trigger,
                             action = state.value.action,
-                            triggerObjectName = "TimeTrigger",
-                            actionObjectName = "VolumeAction",
                             title = state.value.title,
                             description = state.value.description,
                             priority = state.value.priority,

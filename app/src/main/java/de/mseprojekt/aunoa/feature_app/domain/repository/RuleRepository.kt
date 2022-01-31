@@ -21,6 +21,7 @@ interface RuleRepository {
     suspend fun setActive(active: Boolean, id: Int)
     suspend fun setEnabled(enabled: Boolean, id: Int)
     fun insertTag(tag: Tag)
+    suspend fun clearTagsForRule(ruleId: Int)
     fun insertTags(tags: List<Tag>): List<Tag>
     suspend fun insertRuleTagCrossRef(ruleTagCrossRef : RuleTagCrossRef)
     fun getTags(): Flow<List<Tag>>

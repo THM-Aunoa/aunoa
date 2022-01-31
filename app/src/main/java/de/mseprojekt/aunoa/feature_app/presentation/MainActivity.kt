@@ -318,8 +318,6 @@ class MainActivity : ComponentActivity(
         ruleUseCases.insertRule(
             trigger = xx,
             action = yy,
-            triggerObjectName = "CellTrigger",
-            actionObjectName = "VolumeAction",
             title = "Cell-Trigger",
             description = "Zuhause Ton an",
             priority = 9,
@@ -338,8 +336,6 @@ class MainActivity : ComponentActivity(
         ruleUseCases.insertRule(
             trigger = xx,
             action = yy,
-            triggerObjectName = "TimeTrigger",
-            actionObjectName = "VolumeAction",
             title = "Time-Trigger",
             description = "Sonntag Nachts auf lautlos",
             priority = 10,
@@ -357,8 +353,6 @@ class MainActivity : ComponentActivity(
         ruleUseCases.insertRule(
             trigger = xx,
             action = yy,
-            triggerObjectName = "TimeTrigger",
-            actionObjectName = "VolumeAction",
             title = "Time-Trigger",
             description = "Montag Nachts auf lautlos",
             priority = 10,
@@ -376,8 +370,6 @@ class MainActivity : ComponentActivity(
         ruleUseCases.insertRule(
             trigger = xx,
             action = yy,
-            triggerObjectName = "TimeTrigger",
-            actionObjectName = "VolumeAction",
             title = "Time-Trigger",
             description = "Dienstag Nachts auf lautlos",
             priority = 10,
@@ -395,8 +387,6 @@ class MainActivity : ComponentActivity(
         ruleUseCases.insertRule(
             trigger = xx,
             action = yy,
-            triggerObjectName = "TimeTrigger",
-            actionObjectName = "VolumeAction",
             title = "Time-Trigger",
             description = "Mittwoch Nachts auf lautlos",
             priority = 10,
@@ -414,8 +404,6 @@ class MainActivity : ComponentActivity(
         ruleUseCases.insertRule(
             trigger = xx,
             action = yy,
-            triggerObjectName = "TimeTrigger",
-            actionObjectName = "VolumeAction",
             title = "Time-Trigger",
             description = "Donnerstag Nachts auf lautlos",
             priority = 10,
@@ -433,8 +421,6 @@ class MainActivity : ComponentActivity(
         ruleUseCases.insertRule(
             trigger = xx,
             action = yy,
-            triggerObjectName = "TimeTrigger",
-            actionObjectName = "VolumeAction",
             title = "Time-Trigger",
             description = "Freitag Nachts auf lautlos",
             priority = 10,
@@ -452,8 +438,6 @@ class MainActivity : ComponentActivity(
         ruleUseCases.insertRule(
             trigger = xx,
             action = yy,
-            triggerObjectName = "TimeTrigger",
-            actionObjectName = "VolumeAction",
             title = "Time-Trigger",
             description = "Samstag Nachts auf lautlos",
             priority = 10,

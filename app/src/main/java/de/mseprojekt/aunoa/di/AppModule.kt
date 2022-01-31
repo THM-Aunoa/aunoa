@@ -91,7 +91,8 @@ object AppModule {
 //            getTagsForRule = GetTagsForRule(repository),
             insertRuleTagCrossRef = InsertRuleTagCrossRef(repository),
             insertTag = InsertTag(repository),
-            insertTags = InsertTags(repository)
+            insertTags = InsertTags(repository),
+            clearTagsForRule = ClearTagsForRule(repository)
         )
     }
     @Provides

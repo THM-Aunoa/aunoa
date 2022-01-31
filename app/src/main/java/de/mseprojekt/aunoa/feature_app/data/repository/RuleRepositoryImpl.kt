@@ -121,4 +121,8 @@ class RuleRepositoryImpl(
 
         return future!!.get()
     }
+
+    override suspend fun clearTagsForRule(ruleId: Int){
+        dao.clearTagsForRule(ruleId)
+    }
 }
