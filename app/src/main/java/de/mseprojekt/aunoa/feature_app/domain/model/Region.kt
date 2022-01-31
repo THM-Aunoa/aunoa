@@ -9,5 +9,5 @@ data class Region(
     val regionId: Int? = null,
 
     val name : String,
-    val scanUntil: Long? = null
+    val scanUntil: Long
 )

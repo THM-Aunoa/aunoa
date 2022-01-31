@@ -6,7 +6,10 @@ import de.mseprojekt.aunoa.feature_app.domain.repository.CellRepository
 class EditRegion(
     private val repository: CellRepository
 )  {
-    suspend operator fun invoke(regionId: Int, regionName: String) {
-        repository.insertRegion(Region(regionId = regionId, name= regionName))
+    operator fun invoke(regionId: Int, regionName: String, scanUntil: Long, minutes: Long = 0) {
+        if(minutes > 0){
+            repository.cleanRegions()
+        }
+        repository.insertRegion(Region(regionId = regionId, name= regionName, scanUntil = scanUntil))
     }
 }

@@ -65,7 +65,7 @@ class RulesHubViewModel @Inject constructor(
                         if(rule.trigger is CellTrigger){
                             val regionId= cellUseCases.getRegionIdByName(rule.trigger.name)
                             if (regionId==null){
-                                cellUseCases.insertRegion(rule.trigger.name)
+                                cellUseCases.insertRegion(rule.trigger.name, 0)
                             }
                         }
                         val ruleId = ruleUseCases.insertRule(

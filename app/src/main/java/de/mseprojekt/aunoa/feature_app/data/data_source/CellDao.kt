@@ -11,7 +11,7 @@ interface CellDao {
     fun insertCell(cell : Cell)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertRegion(region : Region)
+    fun insertRegion(region : Region)
 
     @Query("DELETE from cell WHERE cellId = :cellId")
     suspend fun deleteCell(cellId: Long)

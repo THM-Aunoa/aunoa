@@ -307,7 +307,7 @@ class MainActivity : ComponentActivity(
     }
 
     suspend fun insertExamples() {
-        cellUseCases.insertRegion("Home")
+        cellUseCases.insertRegion("Home", 0)
 
         val x1: TriggerObject = CellTrigger(
             name = "Home"

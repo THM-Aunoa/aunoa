@@ -7,6 +7,8 @@ import de.mseprojekt.aunoa.feature_app.domain.model.Cell
 import de.mseprojekt.aunoa.feature_app.domain.model.Region
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.CellTrigger
 import de.mseprojekt.aunoa.feature_app.domain.repository.CellRepository
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 
@@ -30,9 +32,14 @@ class CellRepositoryImpl (
         return future!!.get()
     }
 
-    override suspend fun insertRegion(region : Region) {
-        cellDao.insertRegion(region)
+    override fun insertRegion(region : Region) {
+        val callable = Callable{ cellDao.insertRegion(region) }
+
+        val future = Executors.newSingleThreadExecutor().submit(callable)
+
+        return future!!.get()
     }
+
 
     override fun getRegionNameById(id: Int): String?{
         val callable = Callable{ cellDao.getRegionNameById(id) }
@@ -40,6 +47,16 @@ class CellRepositoryImpl (
         val future = Executors.newSingleThreadExecutor().submit(callable)
 
         return future!!.get()
+    }
+
+    override fun cleanRegions() {
+        val regions = getRegions()
+        val currentTime = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+        for (region in regions){
+            if (region.scanUntil > currentTime){
+                insertRegion(Region(regionId = region.regionId, name = region.name, scanUntil = 0))
+            }
+        }
     }
 
     override fun deleteRegion(id: Int) {
