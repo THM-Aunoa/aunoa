@@ -16,6 +16,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.Task
 import dagger.hilt.android.lifecycle.HiltViewModel
+import de.mseprojekt.aunoa.feature_app.domain.model.Tag
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.LocationTrigger
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.RuleUseCases
 import de.mseprojekt.aunoa.services.AunoaService
@@ -91,8 +92,6 @@ class EditRuleViewModel @Inject constructor(
                         _eventFlow.emit(UiEvent.DeleteRule(message = "Nothing to delete"))
                     }
                 }
-
-
             }
             is EditRuleEvent.EnteredTitle -> {
                 _state.value = _state.value.copy(
@@ -107,6 +106,12 @@ class EditRuleViewModel @Inject constructor(
             is EditRuleEvent.EnteredPriority -> {
                 _state.value = _state.value.copy(
                     priority = event.value
+                )
+            }
+            is EditRuleEvent.AddTag -> {
+                val newTags = state.value.tags + Tag(title = event.value)
+                _state.value = _state.value.copy(
+                    tags = newTags
                 )
             }
             is EditRuleEvent.ChoosedTrigger -> {
@@ -139,6 +144,7 @@ class EditRuleViewModel @Inject constructor(
                             priority = state.value.priority,
                             id = state.value.ruleId
                         )
+                        ruleUseCases.clearTagsForRule(ruleId)
                         val newTags = ruleUseCases.insertTags(state.value.tags)
                         newTags.forEach { tag ->
                             ruleUseCases.insertRuleTagCrossRef(ruleId, tag.tagId!!)

@@ -273,6 +273,7 @@ fun EditRuleScreen(
             confirmButton = {
                 Button(
                     onClick = {
+                        viewModel.onEvent(EditRuleEvent.AddTag(newTagText))
                         openTagDialog.value = false
                     }) {
                     Text("Add Tag")

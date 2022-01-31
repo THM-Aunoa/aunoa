@@ -91,6 +91,7 @@ fun RuleDetailsScreen(
                     Row() {
                         state.tags.forEach { tag ->
                             AunoaChip(label = tag.title)
+                            Spacer(modifier = Modifier.width(5.dp))
                         }
                     }
                 }
