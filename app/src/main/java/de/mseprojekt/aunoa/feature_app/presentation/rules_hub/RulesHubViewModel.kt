@@ -9,10 +9,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.mseprojekt.aunoa.feature_app.domain.model.UnzippedRuleWithTags
+import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.CellTrigger
+import de.mseprojekt.aunoa.feature_app.domain.use_case.cell.CellUseCases
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.RuleUseCases
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rulesHub.RulesHubUseCases
-import de.mseprojekt.aunoa.feature_app.presentation.edit_rule.EditRuleViewModel
-import de.mseprojekt.aunoa.feature_app.presentation.operation.OperationViewModel
 import de.mseprojekt.aunoa.other.AunoaEventInterface
 import de.mseprojekt.aunoa.other.AunoaViewModelInterface
 import de.mseprojekt.aunoa.services.AunoaService
@@ -28,6 +28,7 @@ import javax.inject.Inject
 class RulesHubViewModel @Inject constructor(
     private val rulesHubUseCases: RulesHubUseCases,
     private val ruleUseCases: RuleUseCases,
+    private val cellUseCases: CellUseCases,
     private val application: Application,
 ) : ViewModel(), AunoaViewModelInterface {
 
@@ -61,6 +62,12 @@ class RulesHubViewModel @Inject constructor(
                 val rule = event.value
                 viewModelScope.launch {
                     try {
+                        if(rule.trigger is CellTrigger){
+                            val regionId= cellUseCases.getRegionIdByName(rule.trigger.name)
+                            if (regionId==null){
+                                cellUseCases.insertRegion(rule.trigger.name)
+                            }
+                        }
                         val ruleId = ruleUseCases.insertRule(
                             rule.action,
                             rule.trigger,

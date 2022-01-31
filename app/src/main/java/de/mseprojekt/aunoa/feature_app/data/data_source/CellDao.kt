@@ -1,9 +1,6 @@
 package de.mseprojekt.aunoa.feature_app.data.data_source
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
 import de.mseprojekt.aunoa.feature_app.domain.model.Cell
 import de.mseprojekt.aunoa.feature_app.domain.model.Region
 
@@ -19,8 +16,17 @@ interface CellDao {
     @Query("DELETE from cell WHERE cellId = :cellId")
     suspend fun deleteCell(cellId: Long)
 
+    @Transaction
+    fun deleteRegion(regionId: Int){
+        deleteMainRegion(regionId)
+        deleteCellsFromRegion(regionId)
+    }
+
     @Query("DELETE from region WHERE regionId = :regionId")
-    suspend fun deleteRegion(regionId: Int)
+    fun deleteMainRegion(regionId: Int)
+
+    @Query("DELETE from cell WHERE regionId = :regionId")
+    fun deleteCellsFromRegion(regionId: Int)
 
     @Query("SELECT cellId FROM cell, region WHERE name = :regionName and cell.regionId = region.regionId")
     fun getCellIdsByRegion(regionName: String): List<Long>
@@ -30,4 +36,7 @@ interface CellDao {
 
     @Query("SELECT regionId FROM region WHERE name = :name")
     fun getRegionIdByName(name: String) : Int?
+
+    @Query("SELECT name FROM region WHERE regionId = :id")
+    fun getRegionNameById(id: Int) : String?
 }

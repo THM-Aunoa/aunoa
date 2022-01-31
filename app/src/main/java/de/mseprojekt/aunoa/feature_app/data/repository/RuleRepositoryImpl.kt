@@ -63,8 +63,12 @@ class RuleRepositoryImpl(
         return dao.insertAction(action)
     }
 
-    override suspend fun deleteRule(ruleId: Int) {
-        return dao.deleteRule(ruleId)
+    override fun deleteRule(ruleId: Int) {
+        val callable = Callable{ dao.deleteRule(ruleId) }
+
+        val future = Executors.newSingleThreadExecutor().submit(callable)
+
+        return future!!.get()
     }
 
     override suspend fun setActive(active: Boolean, id: Int){

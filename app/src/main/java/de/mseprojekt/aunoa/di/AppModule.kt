@@ -57,7 +57,7 @@ object AppModule {
     @Provides
     @Singleton
     fun provideCellRepository(db: AppDatabase): CellRepository {
-        return CellRepositoryImpl(db.cellDao)
+        return CellRepositoryImpl(db.cellDao, db.ruleDao)
     }
 
     @Provides
@@ -127,7 +127,8 @@ object AppModule {
             removeCell = RemoveCell(repository),
             removeRegion = RemoveRegion(repository),
             getRegions = GetRegions(repository),
-            getRegionIdByName = GetRegionIdByName(repository)
+            getRegionIdByName = GetRegionIdByName(repository),
+            editRegion = EditRegion(repository)
         )
     }
     @Provides

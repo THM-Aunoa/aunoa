@@ -8,5 +8,6 @@ data class Region(
     @PrimaryKey
     val regionId: Int? = null,
 
-    val name : String
+    val name : String,
+    val scanUntil: Long? = null
 )

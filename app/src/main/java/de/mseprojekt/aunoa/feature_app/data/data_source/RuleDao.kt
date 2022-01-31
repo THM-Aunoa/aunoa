@@ -51,8 +51,29 @@ interface RuleDao {
     @Query("Update rule SET enabled=:enabled WHERE ruleId = :id")
     suspend fun setEnabled(enabled: Boolean, id: Int)
 
+    @Transaction
+    fun deleteRule(ruleId: Int){
+        deleteTagsFromRule(ruleId)
+        deleteActFromRule(ruleId)
+        deleteTrigFromRule(ruleId)
+        deleteMainRule(ruleId)
+        deleteOperationsFromRule(ruleId)
+    }
+
+    @Query("DELETE from operation WHERE ruleId = :ruleId")
+    fun deleteOperationsFromRule(ruleId: Int)
+
     @Query("DELETE from rule WHERE ruleId = :ruleId")
-    suspend fun deleteRule(ruleId: Int)
+    fun deleteMainRule(ruleId: Int)
+
+    @Query("DELETE from RuleTagCrossRef WHERE ruleId = :ruleId")
+    fun deleteTagsFromRule(ruleId: Int)
+
+    @Query("DELETE from Act WHERE ruleId = :ruleId")
+    fun deleteActFromRule(ruleId: Int)
+
+    @Query("DELETE from Trig WHERE ruleId = :ruleId")
+    fun deleteTrigFromRule(ruleId: Int)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertTag(tag: Tag)

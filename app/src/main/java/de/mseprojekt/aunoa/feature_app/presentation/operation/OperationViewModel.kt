@@ -129,6 +129,22 @@ class OperationViewModel @Inject constructor(
                     application.startForegroundService(intent2)
                 }
             }
+            is OperationEvent.EditRegion -> {
+                viewModelScope.launch {
+                    cellUseCases.editRegion(event.id,event.value)
+                    cellUseCases.getRegions().also { regions ->
+                        _state.value = _state.value.copy(
+                            regions = regions
+                        )
+                    }
+                    val intent2 = Intent(application, AunoaService::class.java)
+                    intent2.putExtra(INTENT_COMMAND, "Scan")
+                    intent2.putExtra(INTENT_SCAN_UNTIL, LocalDateTime.now().plusMinutes(event.minutes).toEpochSecond(
+                        ZoneOffset.UTC).toString())
+                    intent2.putExtra(INTENT_SCAN_REGION, "Home")
+                    application.startForegroundService(intent2)
+                }
+            }
         }
     }
 

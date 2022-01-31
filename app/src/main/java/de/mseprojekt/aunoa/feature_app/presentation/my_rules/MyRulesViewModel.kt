@@ -10,17 +10,12 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithTags
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.RuleUseCases
-import de.mseprojekt.aunoa.feature_app.presentation.rule_details.RuleDetailsEvent
-import de.mseprojekt.aunoa.feature_app.presentation.rule_details.RuleDetailsViewModel
-import de.mseprojekt.aunoa.feature_app.presentation.rules_hub.RulesHubEvent
 import de.mseprojekt.aunoa.other.AunoaEventInterface
 import de.mseprojekt.aunoa.other.AunoaViewModelInterface
 import de.mseprojekt.aunoa.services.AunoaService
 import de.mseprojekt.aunoa.services.INTENT_COMMAND
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
