@@ -57,7 +57,7 @@ object AppModule {
     @Provides
     @Singleton
     fun provideCellRepository(db: AppDatabase): CellRepository {
-        return CellRepositoryImpl(db.cellDao)
+        return CellRepositoryImpl(db.cellDao, db.ruleDao)
     }
 
     @Provides
