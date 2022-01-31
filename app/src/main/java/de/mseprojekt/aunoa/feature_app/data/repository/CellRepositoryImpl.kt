@@ -18,7 +18,7 @@ class CellRepositoryImpl (
         return future!!.get()
     }
 
-    override fun getRegionIdByName(name: String): Int {
+    override fun getRegionIdByName(name: String): Int? {
         val callable = Callable{ dao.getRegionIdByName(name) }
 
         val future = Executors.newSingleThreadExecutor().submit(callable)
@@ -27,7 +27,9 @@ class CellRepositoryImpl (
     }
 
     override suspend fun insertRegion(name: String) {
-        dao.insertRegion(Region(name = name))
+        if (getRegionIdByName(name) == null) {
+            dao.insertRegion(Region(name = name))
+        }
     }
 
     override suspend fun deleteRegion(id: Int) {
