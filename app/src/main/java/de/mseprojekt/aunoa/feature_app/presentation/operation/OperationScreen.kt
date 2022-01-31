@@ -224,7 +224,7 @@ fun InfoScreen() {
             }
             Spacer(modifier = Modifier.height(25.dp))
             Text(
-                text = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren",
+                text = "Aunoa supports you in your daily routine. To do this, you can set rules that automatically change states on your smartphone. There are actions and triggers for this. Just try it!",
                 style = MaterialTheme.typography.body1
             )
         }
