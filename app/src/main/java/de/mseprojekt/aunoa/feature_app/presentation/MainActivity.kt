@@ -80,7 +80,7 @@ class MainActivity : ComponentActivity(
                     mutableStateOf(false)
                 }
                 var policyAccess by remember {
-                    mutableStateOf(false)
+                    mutableStateOf(manager.isNotificationPolicyAccessGranted)
                 }
                 LaunchedEffect(key1 = isRunning, key2 = timer) {
                     if (isRunning && timer > 0) {
