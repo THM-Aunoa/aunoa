@@ -38,7 +38,7 @@ import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.RuleUseCases
 import de.mseprojekt.aunoa.feature_app.domain.use_case.state.StateUseCases
 import de.mseprojekt.aunoa.feature_app.presentation.edit_rule.EditRuleScreen
 import de.mseprojekt.aunoa.feature_app.presentation.my_rules.MyRulesScreen
-import de.mseprojekt.aunoa.feature_app.presentation.operation.ActivityScreen
+import de.mseprojekt.aunoa.feature_app.presentation.operation.OperationScreen
 import de.mseprojekt.aunoa.feature_app.presentation.rule_details.RuleDetailsScreen
 import de.mseprojekt.aunoa.feature_app.presentation.rules_hub.RulesHubScreen
 import de.mseprojekt.aunoa.feature_app.presentation.util.Screen
@@ -256,7 +256,7 @@ class MainActivity : ComponentActivity(
                                             startDestination = Screen.OperationScreen.route
                                         ) {
                                             composable(route = Screen.OperationScreen.route) {
-                                                ActivityScreen(
+                                                OperationScreen(
                                                     navController = navController
                                                 )
                                             }

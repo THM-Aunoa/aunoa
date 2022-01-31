@@ -1,11 +1,10 @@
 package de.mseprojekt.aunoa.feature_app.presentation.operation
 
-import de.mseprojekt.aunoa.feature_app.domain.model.Operation
+import de.mseprojekt.aunoa.feature_app.data.data_source.relations.OperationWithRuleAndTags
 import de.mseprojekt.aunoa.feature_app.domain.model.Region
-import kotlinx.coroutines.flow.Flow
 
 data class OperationState (
-    val operations: List<Operation> = emptyList(),
+    val operations: List<OperationWithRuleAndTags> = emptyList(),
     val searchText: String = "",
     val username: String = "",
     val email: String = "",

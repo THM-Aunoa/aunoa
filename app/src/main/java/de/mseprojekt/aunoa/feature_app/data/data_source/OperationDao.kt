@@ -1,6 +1,7 @@
 package de.mseprojekt.aunoa.feature_app.data.data_source
 
 import androidx.room.*
+import de.mseprojekt.aunoa.feature_app.data.data_source.relations.OperationWithRuleAndTags
 import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithOperations
 import de.mseprojekt.aunoa.feature_app.domain.model.Operation
 import kotlinx.coroutines.flow.Flow
@@ -9,11 +10,11 @@ import kotlinx.coroutines.flow.Flow
 interface OperationDao {
 
     @Transaction
-    @Query("SELECT * FROM rule")
-    fun getOperations(): Flow<List<RuleWithOperations>>
+    @Query("SELECT * FROM operation")
+    fun getOperationsWithRuleAndTags(): Flow<List<OperationWithRuleAndTags>>
 
     @Query("SELECT * FROM operation")
-    fun getOperationsWithRule(): Flow<List<Operation>>
+    fun getRulesWithOperations(): Flow<List<RuleWithOperations>>
 
     @Query("SELECT * FROM operation WHERE ruleId = :id")
     suspend fun getOperationsById(id: Int): List<Operation>

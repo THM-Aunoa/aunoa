@@ -98,8 +98,8 @@ object AppModule {
     @Singleton
     fun provideOperationUseCases(repository: OperationRepository): OperationsUseCases {
         return OperationsUseCases(
-            getOperations = GetOperations(repository),
-            getOperationsWithRule = GetOperationsWithRule(repository),
+            getOperationsWithRuleAndTags = GetOperationsWithRuleAndTags(repository),
+            getRulesWithOperations = GetRulesWithOperations(repository),
             getOperationsById = GetOperationsById(repository),
             insertOperation = InsertOperation(repository)
         )
