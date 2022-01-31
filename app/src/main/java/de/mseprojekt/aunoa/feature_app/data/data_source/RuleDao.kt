@@ -18,6 +18,10 @@ interface RuleDao {
     fun getRulesWithTags(): Flow<List<RuleWithTags>>
 
     @Transaction
+    @Query("SELECT * FROM rule where ruleId=:id")
+    fun getRuleWithTags(id: Int): RuleWithTags
+
+    @Transaction
     @Query("SELECT * FROM rule")
     fun getRules(): Flow<List<RuleWithActAndTrig>>
 
@@ -59,6 +63,9 @@ interface RuleDao {
 
     @Query("SELECT * FROM tag")
     fun getTags(): Flow<List<Tag>>
+
+    /*@Query("SELECT * FROM tag")
+    suspend fun getTagsForRule(id: Int): List<Tag>*/
 
     @Query("SELECT * FROM tag where title= :title")
     fun getTagByName(title: String): Tag

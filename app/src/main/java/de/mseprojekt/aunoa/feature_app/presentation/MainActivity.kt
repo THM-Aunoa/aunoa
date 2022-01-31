@@ -36,7 +36,7 @@ import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TriggerObject
 import de.mseprojekt.aunoa.feature_app.domain.use_case.cell.CellUseCases
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.RuleUseCases
 import de.mseprojekt.aunoa.feature_app.domain.use_case.state.StateUseCases
-import de.mseprojekt.aunoa.feature_app.presentation.add_rule.AddRuleScreen
+import de.mseprojekt.aunoa.feature_app.presentation.edit_rule.EditRuleScreen
 import de.mseprojekt.aunoa.feature_app.presentation.my_rules.MyRulesScreen
 import de.mseprojekt.aunoa.feature_app.presentation.operation.ActivityScreen
 import de.mseprojekt.aunoa.feature_app.presentation.rule_details.RuleDetailsScreen
@@ -82,7 +82,7 @@ class MainActivity : ComponentActivity(
                 var policyAccess by remember {
                     mutableStateOf(false)
                 }
-                LaunchedEffect(key1= isRunning, key2 = timer) {
+                LaunchedEffect(key1 = isRunning, key2 = timer) {
                     if (isRunning && timer > 0) {
                         delay(100L)
                         timer += 100
@@ -111,9 +111,7 @@ class MainActivity : ComponentActivity(
                             },
                             text = {
                                 Text(
-                                    "wir speichern für dich deinen Standort zu " +
-                                            "deinen getrackten Arbeitsstunden. Dafür benötigen wir deine Erlaubnis." +
-                                            "Um die App in vollem Ausmaß nutzen zu können, bestätige bitte die Abfrage."
+                                    "wir wollen dir helfen dein Zusammenleben mit deinem Smartphone zu verbessern. Wir brauchen dafür Zugriff auf deinen Standort, damit wir deine Aktionen auch an den richtigen Orten ausführen können."
                                 )
                             },
                             confirmButton = {
@@ -131,7 +129,7 @@ class MainActivity : ComponentActivity(
                             val context = LocalContext.current
                             Text(
                                 "Du hast uns leider nicht die benötigten Berechtigungen zur Abfrage deines Standorts erteilt." +
-                                        "Da wir deinen Standort zu deinen getrackten Arbeitsstunden tracken, musst du diese Berechtigungen erteilen. " +
+                                        "Da wir dir die bestmögliche Erfahrung bieten können, musst du diese Berechtigungen erteilen. " +
                                         "Du kannst dafür direkt über den Button in die Einstellungen wechseln und danach direkt zurück in die App wechseln."
                             )
                             Button(onClick = {
@@ -161,9 +159,9 @@ class MainActivity : ComponentActivity(
                             } else {
                                 permissionsState
                             }
-                            PermissionsRequired(
-                                multiplePermissionsState = secondPermissionsState,
-                                permissionsNotGrantedContent = {
+                        PermissionsRequired(
+                            multiplePermissionsState = secondPermissionsState,
+                            permissionsNotGrantedContent = {
                                 AlertDialog(
                                     onDismissRequest = {
                                     },
@@ -172,9 +170,7 @@ class MainActivity : ComponentActivity(
                                     },
                                     text = {
                                         Text(
-                                            "wir speichern für dich deinen Standort zu " +
-                                                    "deinen getrackten Arbeitsstunden. Dafür benötigen wir deine Erlaubnis." +
-                                                    "Um die App in vollem Ausmaß nutzen zu können, bestätige bitte die Abfrage."
+                                            "wir wollen dir helfen dein Zusammenleben mit deinem Smartphone zu verbessern. Wir brauchen dafür Zugriff auf deinen Standort, damit wir deine Aktionen auch an den richtigen Orten ausführen können."
                                         )
                                     },
                                     confirmButton = {
@@ -190,17 +186,19 @@ class MainActivity : ComponentActivity(
                                         }
 
                                     }
-                                )},
-                                permissionsNotAvailableContent = {
-                                    Column(Modifier.padding(30.dp)) {
+                                )
+                            },
+                            permissionsNotAvailableContent = {
+                                Column(Modifier.padding(30.dp)) {
                                     val context = LocalContext.current
                                     Text(
                                         "Du hast uns leider nicht die benötigten Berechtigungen zur Abfrage deines Standorts erteilt." +
-                                                "Da wir deinen Standort zu deinen getrackten Arbeitsstunden tracken, musst du diese Berechtigungen erteilen. " +
+                                                "Da wir dir die bestmögliche Erfahrung bieten können, musst du diese Berechtigungen erteilen. " +
                                                 "Du kannst dafür direkt über den Button in die Einstellungen wechseln und danach direkt zurück in die App wechseln."
                                     )
                                     Button(onClick = {
-                                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                        val intent =
+                                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                                         val uri: Uri = Uri.fromParts("package", packageName, null)
                                         intent.data = uri
                                         startActivity(intent)
@@ -208,91 +206,99 @@ class MainActivity : ComponentActivity(
                                         Text("Einstellungen öffnen")
                                     }
                                 }
-                                },
-                                content = {
-                                    when {
-                                        !policyAccess -> {
-                                            isRunning = true
-                                            AlertDialog(
-                                                onDismissRequest = {
-                                                },
-                                                title = {
-                                                    Text(text = "Hallo Nutzer")
-                                                },
-                                                text = {
-                                                    Text(
-                                                        "wir speichern für dich deinen Standort zu " +
-                                                                "deinen getrackten Arbeitsstunden. Dafür benötigen wir deine Erlaubnis." +
-                                                                "Um die App in vollem Ausmaß nutzen zu können, bestätige bitte die Abfrage."
-                                                    )
-                                                },
-                                                confirmButton = {
-                                                    Button(onClick = {
-                                                            val intent =
-                                                                Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
-                                                            startActivity(intent)
-                                                    }) {
-                                                        Text("Ok!")
-                                                    }
-
+                            },
+                            content = {
+                                when {
+                                    !policyAccess -> {
+                                        isRunning = true
+                                        AlertDialog(
+                                            onDismissRequest = {
+                                            },
+                                            title = {
+                                                Text(text = "Hallo Nutzer")
+                                            },
+                                            text = {
+                                                Text(
+                                                    "wir wollen dir Helfen dein Zusammenleben mit deinem Smartphone zu verbessern. Du musst uns erlauben dein Smartphone stummzuschalten, damit wir dies für dich in Zukunft automatisch erledigen können."
+                                                )
+                                            },
+                                            confirmButton = {
+                                                Button(onClick = {
+                                                    val intent =
+                                                        Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
+                                                    startActivity(intent)
+                                                }) {
+                                                    Text("Ok!")
                                                 }
-                                            )
-                                        }
-                                        else -> {
-                                            isRunning = false
-                                            CoroutineScope(Dispatchers.Main).launch {
-                                                if (stateUseCases.isFirstRun()) {
-                                                    insertExamples()
-                                                    stateUseCases.insertState(true)
-                                                }
-                                                foregroundStartService("Start")
 
                                             }
-
-                                            val systemUiController = rememberSystemUiController()
-                                            systemUiController.setSystemBarsColor(
-                                                color = MaterialTheme.colors.primary
-                                            )
-
-                                            val navController = rememberNavController()
-                                            NavHost(
-                                                navController = navController,
-                                                startDestination = Screen.OperationScreen.route
-                                            ) {
-                                                composable(route = Screen.OperationScreen.route) {
-                                                    ActivityScreen(
-                                                        navController = navController
-                                                    )
-                                                }
-                                                composable(
-                                                    route = Screen.RulesDetailsScreen.route +
-                                                            "?rulesId={rulesId}",
-                                                    arguments = listOf(
-                                                        navArgument(
-                                                            name = "rulesId"
-                                                        ) {
-                                                            type = NavType.IntType
-                                                            defaultValue = -1
-                                                        }
-                                                    )
-                                                ) {
-                                                    RuleDetailsScreen(
-                                                        navController = navController
-                                                    )
-                                                }
-                                                composable(route = Screen.AddRuleScreen.route) {
-                                                    AddRuleScreen(navController = navController)
-                                                }
-                                                composable(route = Screen.MyRulesScreen.route) {
-                                                    MyRulesScreen(navController = navController)
-                                                }
-                                                composable(route = Screen.RulesHubScreen.route) {
-                                                    RulesHubScreen(navController = navController)
-                                                }
-                                            }
-
-                                        }
+                                        )
                                     }
+                                    else -> {
+                                        isRunning = false
+                                        CoroutineScope(Dispatchers.Main).launch {
+                                            if (stateUseCases.isFirstRun()) {
+                                                insertExamples()
+                                                stateUseCases.insertState(true)
+                                            }
+                                            foregroundStartService("Start")
+
+                                        }
+
+                                        val systemUiController = rememberSystemUiController()
+                                        systemUiController.setSystemBarsColor(
+                                            color = MaterialTheme.colors.primary
+                                        )
+
+                                        val navController = rememberNavController()
+                                        NavHost(
+                                            navController = navController,
+                                            startDestination = Screen.OperationScreen.route
+                                        ) {
+                                            composable(route = Screen.OperationScreen.route) {
+                                                ActivityScreen(
+                                                    navController = navController
+                                                )
+                                            }
+                                            composable(
+                                                route = Screen.RulesDetailsScreen.route +
+                                                        "?ruleId={ruleId}",
+                                                arguments = listOf(
+                                                    navArgument(
+                                                        name = "ruleId"
+                                                    ) {
+                                                        type = NavType.IntType
+                                                        defaultValue = -1
+                                                    }
+                                                )
+                                            ) {
+                                                RuleDetailsScreen(
+                                                    navController = navController
+                                                )
+                                            }
+                                            composable(route = Screen.EditRuleScreen.route +
+                                                    "?ruleId={ruleId}",
+                                                arguments = listOf(
+                                                    navArgument(
+                                                        name = "ruleId"
+                                                    ) {
+                                                        type = NavType.IntType
+                                                        defaultValue = -1
+                                                    }
+                                                )
+                                            ) {
+                                                EditRuleScreen(navController = navController)
+                                            }
+                                            composable(route = Screen.MyRulesScreen.route) {
+                                                MyRulesScreen(navController = navController)
+                                            }
+                                            composable(route = Screen.RulesHubScreen.route) {
+                                                RulesHubScreen(navController = navController)
+                                            }
+                                        }
+
+                                    }
+                                }
                             })
 
                     })

@@ -10,6 +10,5 @@ class GetOperationsWithRule (
     ){
     operator fun invoke(): Flow<List<Operation>> {
         return repository.getOperationsWithRule()
-
     }
 }

@@ -6,7 +6,7 @@ import de.mseprojekt.aunoa.feature_app.domain.repository.UserRepository
 class GetUser(
     private val repository: UserRepository
 ) {
-    operator fun invoke(): User? {
+    suspend operator fun invoke(): User? {
         return repository.getUserById(1)
     }
 }

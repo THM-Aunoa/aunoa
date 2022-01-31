@@ -7,18 +7,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import de.mseprojekt.aunoa.feature_app.data.data_source.relations.RuleWithTags
 import de.mseprojekt.aunoa.feature_app.presentation.util.Screen
 import de.mseprojekt.aunoa.feature_app.presentation.util.bottom_navigation_bar.BottomNavigationBar
 import de.mseprojekt.aunoa.feature_app.presentation.util.card.AunoaCard
+import de.mseprojekt.aunoa.feature_app.presentation.util.card.CardActionItem
 import de.mseprojekt.aunoa.feature_app.presentation.util.top_app_bar.AunoaTopBar
 import de.mseprojekt.aunoa.feature_app.presentation.util.top_app_bar.TopBarActionItem
 
@@ -32,12 +30,16 @@ fun RulesHubScreen(
     val scaffoldState = rememberScaffoldState()
     val scrollState = rememberScrollState()
     var showSearch by remember { mutableStateOf(false) }
-    val actionItems = listOf<TopBarActionItem>(
+    val actionItems = listOf(
         TopBarActionItem(
             "search",
             Icons.Filled.Search,
             { showSearch = !showSearch })
-    )
+    ,
+    TopBarActionItem(
+        "filter",
+        Icons.Filled.Block,
+        { viewModel.onEvent(RulesHubEvent.ResetFilter) }))
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = { AunoaTopBar(actionItems) },
@@ -57,26 +59,22 @@ fun RulesHubScreen(
                     )
                 }
 
-                Column(modifier = Modifier.verticalScroll(scrollState).padding(bottom = 75.dp)) {
+                Column(modifier = Modifier
+                    .verticalScroll(scrollState)
+                    .padding(bottom = 75.dp)) {
                     state.rules.forEach { rule ->
                         AunoaCard(
                             title = rule.rule.title,
-                            subtitle = rule.rule.ruleId.toString(),
                             content = rule.rule.description,
                             tags = rule.tags,
-                            navController = navController
+                            onClickTag = { tag -> viewModel.onEvent(RulesHubEvent.FilterRules(tag)) },
+                            actions = listOf(CardActionItem("Add Rule", {})),
+                            //iconAction = CardIconAction(Icons.Filled.Add, {}, "Add Rule"),
+                            navController = navController,
+                            viewModel = viewModel
                         )
                     }
                 }
-            }
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    navController.navigate(Screen.AddRuleScreen.route)
-                }
-            ) {
-                Icon(Icons.Filled.Add, "Add Rule")
             }
         },
         bottomBar = { BottomNavigationBar(navController = navController) }

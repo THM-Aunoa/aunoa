@@ -1,4 +1,4 @@
-package de.mseprojekt.aunoa.feature_app.presentation.add_rule
+package de.mseprojekt.aunoa.feature_app.presentation.edit_rule
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -16,18 +16,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.gson.Gson
+import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.LocationTrigger
+import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TimeTrigger
+import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TriggerObject
 import de.mseprojekt.aunoa.feature_app.presentation.util.bottom_navigation_bar.BottomNavigationBar
 import de.mseprojekt.aunoa.feature_app.presentation.util.chip.AunoaChip
 import de.mseprojekt.aunoa.feature_app.presentation.util.top_app_bar.AunoaTopBar
 import de.mseprojekt.aunoa.feature_app.presentation.util.top_app_bar.TopBarActionItem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlin.math.roundToInt
 
 @ExperimentalMaterialApi
 @Composable
-fun AddRuleScreen(
+fun EditRuleScreen(
     navController: NavController,
-    viewModel: AddRuleViewModel = hiltViewModel()
+    viewModel: EditRuleViewModel = hiltViewModel()
 ) {
 
     var state = viewModel.state.value
@@ -36,25 +41,34 @@ fun AddRuleScreen(
     var openTagDialog = remember { mutableStateOf(false) }
     var openTriggerDialog by remember { mutableStateOf(false) }
     var newTagText by remember { mutableStateOf("") }
-    var latitude by remember { mutableStateOf("") }
-    var longitude by remember { mutableStateOf("") }
+
     var trigger by remember { mutableStateOf("") }
     val actionItems = listOf<TopBarActionItem>(
-        TopBarActionItem("undo", Icons.Filled.Undo, {}),
-        TopBarActionItem("redo", Icons.Filled.Redo, {}),
-        TopBarActionItem("delete", Icons.Filled.Delete, {}),
-        TopBarActionItem("save", Icons.Filled.Save, { viewModel.onEvent(AddRuleEvent.SaveRule) }),
+        /*TopBarActionItem("undo", Icons.Filled.Undo, {}),
+        TopBarActionItem("redo", Icons.Filled.Redo, {}),*/
+        TopBarActionItem(
+            "delete",
+            Icons.Filled.Delete,
+            { viewModel.onEvent(EditRuleEvent.DeleteRule) }),
+        TopBarActionItem("save", Icons.Filled.Save, { viewModel.onEvent(EditRuleEvent.SaveRule) }),
     )
 
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
-                is AddRuleViewModel.UiEvent.ShowSnackbar -> {
+                is EditRuleViewModel.UiEvent.ShowSnackbar -> {
                     scaffoldState.snackbarHostState.showSnackbar(
                         message = event.message
                     )
                 }
-                is AddRuleViewModel.UiEvent.SaveRule -> {
+                is EditRuleViewModel.UiEvent.SaveRule -> {
+                    scaffoldState.snackbarHostState.showSnackbar(
+                        message = event.message
+                    )
+                    delay(300L)
+                    navController.navigateUp()
+                }
+                is EditRuleViewModel.UiEvent.DeleteRule -> {
                     scaffoldState.snackbarHostState.showSnackbar(
                         message = event.message
                     )
@@ -75,13 +89,17 @@ fun AddRuleScreen(
                     .padding(horizontal = 15.dp)
                     .padding(bottom = 75.dp)
             ) {
-                Text("New Rule", style = MaterialTheme.typography.h3)
+                if (state.ruleId != -1) {
+                    Text("Edit Rule", style = MaterialTheme.typography.h3)
+                } else {
+                    Text("New Rule", style = MaterialTheme.typography.h3)
+                }
                 Column() {
                     Text("Name", style = MaterialTheme.typography.h6)
                     OutlinedTextField(
                         value = state.title,
-                        onValueChange = { viewModel.onEvent(AddRuleEvent.EnteredTitle(it)) },
-                        label = { Text("Name") },
+                        onValueChange = { viewModel.onEvent(EditRuleEvent.EnteredTitle(it)) },
+                        //label = { Text("Name") },
                         modifier = Modifier.fillMaxWidth(1f)
                     )
                 }
@@ -89,12 +107,30 @@ fun AddRuleScreen(
                     Text("Description", style = MaterialTheme.typography.h6)
                     OutlinedTextField(
                         value = state.description,
-                        onValueChange = { viewModel.onEvent(AddRuleEvent.EnteredDescription(it)) },
-                        label = { Text("Description") },
+                        onValueChange = { viewModel.onEvent(EditRuleEvent.EnteredDescription(it)) },
+                        //label = { Text("Description") },
                         modifier = Modifier
                             .height(120.dp)
                             .fillMaxWidth(1f)
                     )
+                }
+                Column() {
+                    Text("Priority", style = MaterialTheme.typography.h6)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(text = state.priority.toString())
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Slider(
+                            value = state.priority.toFloat(),
+                            onValueChange = { viewModel.onEvent(EditRuleEvent.EnteredPriority(it.roundToInt())) },
+                            valueRange = 0f..10f,
+                            steps = 9,
+                            colors = SliderDefaults.colors(
+                                thumbColor = MaterialTheme.colors.primary,
+                                activeTrackColor = MaterialTheme.colors.primary
+                            )
+                        )
+
+                    }
                 }
                 Column() {
                     Row(
@@ -116,66 +152,29 @@ fun AddRuleScreen(
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text("Trigger", style = MaterialTheme.typography.h6)
                     Spacer(modifier = Modifier.height(10.dp))
-                    if (state.triggerObjectName === "Location Trigger") {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .border(
-                                    BorderStroke(1.dp, Color.LightGray),
-                                    RoundedCornerShape(5)
-                                )
-                                .padding(horizontal = 20.dp)
-                                .padding(bottom = 20.dp, top = 5.dp),
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(text = "Location Trigger", style = MaterialTheme.typography.h6)
-                                IconButton(onClick = { /*TODO*/ }) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Delete,
-                                        contentDescription = "Remove Trigger",
-                                        tint = Color.Gray,
-                                        )
-                                }
-                            }
-                            //Text("Latitude", style = MaterialTheme.typography.h6)
-                            OutlinedTextField(
-                                value = latitude,
-                                onValueChange = { latitude = it },
-                                label = { Text("Latitude") },
-                                modifier = Modifier
-                                    .fillMaxWidth(1f)
-                            )
-                            Spacer(modifier = Modifier.height(10.dp))
-                            //Text("Longitude", style = MaterialTheme.typography.h6)
-                            OutlinedTextField(
-                                value = longitude,
-                                onValueChange = { longitude = it },
-                                label = { Text("Longitude") },
-                                modifier = Modifier
-                                    .fillMaxWidth(1f)
-                            )
+                    when (state.triggerObjectName) {
+                        "TimeTrigger" -> {
                         }
-                    } else {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(.8f)
-                                .align(Alignment.CenterHorizontally)
-                                .height(80.dp)
-                                .border(
-                                    BorderStroke(2.dp, MaterialTheme.colors.primary),
-                                    RoundedCornerShape(5)
-                                )
-                        ) {
-                            TextButton(
-                                onClick = { openTriggerDialog = true },
-                                modifier = Modifier.align(Alignment.Center)
+                        "LocationTrigger" -> {
+                            LocationTriggerEdit()
+                        }
+                        "" -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(.8f)
+                                    .align(Alignment.CenterHorizontally)
+                                    .height(80.dp)
+                                    .border(
+                                        BorderStroke(2.dp, MaterialTheme.colors.primary),
+                                        RoundedCornerShape(5)
+                                    )
                             ) {
-                                Text("Add Trigger")
+                                TextButton(
+                                    onClick = { openTriggerDialog = true },
+                                    modifier = Modifier.align(Alignment.Center)
+                                ) {
+                                    Text("Add Trigger")
+                                }
                             }
                         }
                     }
@@ -217,8 +216,8 @@ fun AddRuleScreen(
             },
             text = {
                 val myData = listOf(
-                    Triple("Time Trigger", "Using day and time", Icons.Filled.AccessTime),
-                    Triple("Location Trigger", "Using coordinates", Icons.Filled.MyLocation)
+                    Triple("TimeTrigger", "Using day and time", Icons.Filled.AccessTime),
+                    Triple("LocationTrigger", "Using coordinates", Icons.Filled.MyLocation)
                 )
                 LazyColumn {
                     items(myData) { item ->
@@ -233,7 +232,7 @@ fun AddRuleScreen(
                             },
                             modifier = Modifier.clickable {
                                 viewModel.onEvent(
-                                    AddRuleEvent.ChoosedTrigger(item.first)
+                                    EditRuleEvent.ChoosedTrigger(item.first)
                                 )
                                 openTriggerDialog = false
                             })
@@ -285,6 +284,58 @@ fun AddRuleScreen(
                     Text("Cancel")
                 }
             }
+        )
+    }
+}
+
+@Composable
+fun LocationTriggerEdit(
+    viewModel: EditRuleViewModel = hiltViewModel()
+) {
+    var latitude by remember { mutableStateOf("") }
+    var longitude by remember { mutableStateOf("") }
+    val state: TriggerObject = viewModel.state.value.trigger
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                BorderStroke(1.dp, Color.LightGray),
+                RoundedCornerShape(5)
+            )
+            .padding(horizontal = 20.dp)
+            .padding(bottom = 20.dp, top = 5.dp),
+        verticalArrangement = Arrangement.Center
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = "Location Trigger", style = MaterialTheme.typography.h6)
+            IconButton(onClick = { /*TODO*/ }) {
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = "Remove Trigger",
+                    tint = Color.Gray,
+                )
+            }
+        }
+        //Text("Latitude", style = MaterialTheme.typography.h6)
+        /*OutlinedTextField(
+            value = ,
+            onValueChange = { latitude = it },
+            label = { Text("Latitude") },
+            modifier = Modifier
+                .fillMaxWidth(1f)
+        )*/
+        Spacer(modifier = Modifier.height(10.dp))
+        //Text("Longitude", style = MaterialTheme.typography.h6)
+        OutlinedTextField(
+            value = longitude,
+            onValueChange = { longitude = it },
+            label = { Text("Longitude") },
+            modifier = Modifier
+                .fillMaxWidth(1f)
         )
     }
 }

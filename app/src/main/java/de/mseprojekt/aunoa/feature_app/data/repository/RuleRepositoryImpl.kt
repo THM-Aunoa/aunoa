@@ -27,6 +27,14 @@ class RuleRepositoryImpl(
         return dao.getRulesWithTags();
     }
 
+    override suspend fun getRuleWithTags(id: Int): RuleWithTags {
+        val callable = Callable{ dao.getRuleWithTags(id) }
+
+        val future = Executors.newSingleThreadExecutor().submit(callable)
+
+        return future!!.get()
+    }
+
     override fun getRulesWithoutFlow(): List<RuleWithActAndTrig> {
         val callable = Callable{ dao.getRulesWithoutFlow() }
 
@@ -93,9 +101,15 @@ class RuleRepositoryImpl(
     override suspend fun insertRuleTagCrossRef(ruleTagCrossRef : RuleTagCrossRef){
         dao.insertRuleTagCrossRef(ruleTagCrossRef)
     }
+
     override fun getTags(): Flow<List<Tag>>{
         return dao.getTags()
     }
+
+    /*override suspend fun getTagsForRule(id: Int): List<Tag> {
+        return dao.getTagsForRule(id)
+    }*/
+
     override fun getTagByName(title : String): Tag{
         return dao.getTagByName(title)
     }

@@ -80,6 +80,7 @@ object AppModule {
             getRule = GetRule(repository),
             getRules = GetRules(repository),
             getRulesWithTags = GetRulesWithTags(repository),
+            getRuleWithTags = GetRuleWithTags(repository),
             getRulesWithTagsWithoutFlow = GetRulesWithTagsWithoutFlow(repository),
             insertRule = InsertRule(repository),
             getRulesWithoutFlow = GetRulesWithoutFlow(repository),
@@ -87,6 +88,7 @@ object AppModule {
             setEnabled = SetEnabled(repository),
             removeRule = RemoveRule(repository),
             getTags = GetTags(repository),
+//            getTagsForRule = GetTagsForRule(repository),
             insertRuleTagCrossRef = InsertRuleTagCrossRef(repository),
             insertTag = InsertTag(repository),
             insertTags = InsertTags(repository)

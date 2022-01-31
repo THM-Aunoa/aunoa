@@ -7,7 +7,7 @@ import de.mseprojekt.aunoa.feature_app.presentation.util.Screen
 
 sealed class BottomNavItem(var label:String, var icon:ImageVector, var route:String){
 
-    object Activity : BottomNavItem("Activity", Icons.Filled.Update, Screen.OperationScreen.route)
-    object YourRules: BottomNavItem("Your Rules", Icons.Filled.VideoLibrary, Screen.AddRuleScreen.route)
+    object Activity : BottomNavItem("Operations", Icons.Filled.Update, Screen.OperationScreen.route)
+    object YourRules: BottomNavItem("Your Rules", Icons.Filled.VideoLibrary, Screen.MyRulesScreen.route)
     object RulesHub: BottomNavItem("Rules Hub", Icons.Filled.Apps, Screen.RulesHubScreen.route)
 }

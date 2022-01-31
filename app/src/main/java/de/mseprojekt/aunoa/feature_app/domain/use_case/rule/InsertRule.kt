@@ -18,15 +18,22 @@ class InsertRule(
         triggerObjectName: String,
         title: String,
         description: String,
-        priority: Int
+        priority: Int,
+        id: Int? = -1
     ) {
-        var maxId = repository.getMaxIdFromRules()
+        val maxId = repository.getMaxIdFromRules()
         val gson = Gson()
-        if (maxId == null)
-            maxId = 0
+        var ruleId = id
+        if (ruleId == -1) {
+            if (maxId == null) {
+                ruleId = 1
+            } else {
+                ruleId = maxId + 1
+            }
+        }
         repository.insertRule(
             Rule(
-                ruleId = maxId + 1,
+                ruleId = ruleId,
                 title = title,
                 priority = priority,
                 description = description,
@@ -37,7 +44,7 @@ class InsertRule(
         val actionString = gson.toJson(action)
         repository.insertAction(
             Act(
-                ruleId = maxId + 1,
+                ruleId = ruleId,
                 actionType = actionObjectName,
                 actionObject = actionString
             )
@@ -45,7 +52,7 @@ class InsertRule(
         val triggerString = gson.toJson(trigger)
         repository.insertTrigger(
             Trig(
-                ruleId = maxId + 1,
+                ruleId = ruleId,
                 triggerType = triggerObjectName,
                 triggerObject = triggerString
             )

@@ -7,7 +7,7 @@ import de.mseprojekt.aunoa.feature_app.domain.repository.UserRepository
 class UserRepositoryImpl(
     private val userDao: UserDao
 ): UserRepository {
-    override fun getUserById(userId: Int): User? {
+    override suspend fun getUserById(userId: Int): User? {
         return userDao.getUserById(userId)
     }
 
