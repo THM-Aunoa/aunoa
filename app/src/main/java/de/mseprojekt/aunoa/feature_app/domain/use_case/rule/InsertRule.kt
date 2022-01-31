@@ -13,6 +13,7 @@ import de.mseprojekt.aunoa.feature_app.domain.repository.RuleRepository
 class InsertRule(
     private val repository: RuleRepository
 ) {
+    @Synchronized
     suspend operator fun invoke(
         action: ActionObject,
         trigger: TriggerObject,

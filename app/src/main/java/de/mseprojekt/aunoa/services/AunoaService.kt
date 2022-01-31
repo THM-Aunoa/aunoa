@@ -146,9 +146,6 @@ class AunoaService: Service() {
                 val region = intent.getStringExtra(INTENT_SCAN_REGION)
                 val regionId = region?.let { cellUseCases.getRegionIdByName(it) }
                 val until = intent.getStringExtra(INTENT_SCAN_UNTIL)?.toLong()
-                Log.d("s", until.toString())
-                Log.d("a", regionId.toString())
-                Log.d("s", region.toString())
                 if (region?.isNotEmpty()!! && regionId != null && until != null) {
                     scanMode = true
                     scanUntil = LocalDateTime.ofEpochSecond(
@@ -192,10 +189,9 @@ class AunoaService: Service() {
         CoroutineScope(Dispatchers.Main).launch {
             val telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
             val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-            Log.d("regions",cellUseCases.getRegions().toString())
             delay(5000)
             updateRuleList()
-            Log.d("a", rules.toString())
+            Log.d("All rules: ", rules.toString())
             if (requestLocation) {
                 requestLocation()
                 delay(20000)
