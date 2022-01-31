@@ -4,5 +4,6 @@ data class OperationsUseCases(
     val getOperationsWithRuleAndTags: GetOperationsWithRuleAndTags,
     val getRulesWithOperations: GetRulesWithOperations,
     val getOperationsById: GetOperationsById,
-    val insertOperation: InsertOperation
+    val insertOperation: InsertOperation,
+    val deleteOldOperations: DeleteOldOperations
 )

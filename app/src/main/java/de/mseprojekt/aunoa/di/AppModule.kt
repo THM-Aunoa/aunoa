@@ -102,7 +102,8 @@ object AppModule {
             getOperationsWithRuleAndTags = GetOperationsWithRuleAndTags(repository),
             getRulesWithOperations = GetRulesWithOperations(repository),
             getOperationsById = GetOperationsById(repository),
-            insertOperation = InsertOperation(repository)
+            insertOperation = InsertOperation(repository),
+            deleteOldOperations = DeleteOldOperations(repository)
         )
     }
 

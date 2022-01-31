@@ -84,6 +84,9 @@ class AunoaService: Service() {
     private var requestLocation = false
     private var requestCellId = false
     private var useSpotify = false
+    private var run = 0
+
+    private var lastCleanUp = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
 
     private var rules: ArrayList<ArrayList<UnzippedRule>> = ArrayList()
 
@@ -200,6 +203,7 @@ class AunoaService: Service() {
             if (requestCellId){
                 requestCellId(telephonyManager)
             }
+            operationsUseCases.deleteOldOperations()
             mutex.withLock {
                 for ((idx, ruleCategories) in rules.withIndex()) {
                     var activeRuleFound = false
@@ -270,6 +274,17 @@ class AunoaService: Service() {
             }
             delay(delay)
             while (isrunning) {
+                if (run > 60) {
+                    run = 0
+                    if (LocalDateTime.now().minusDays(1)
+                            .toEpochSecond(ZoneOffset.UTC) > lastCleanUp
+                    ) {
+                        lastCleanUp = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+                        operationsUseCases.deleteOldOperations()
+                    }
+                } else{
+                    run++
+                }
                 if (requestLocation) {
                     requestLocation()
                     delay(20000)

@@ -26,4 +26,8 @@ class OperationRepositoryImpl(
         return dao.insertOperation(operation)
     }
 
+    override suspend fun deleteOperations(date: Long){
+        dao.deleteOperations(date)
+    }
+
 }

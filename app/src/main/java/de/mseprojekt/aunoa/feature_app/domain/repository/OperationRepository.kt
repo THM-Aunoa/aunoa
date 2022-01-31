@@ -11,4 +11,5 @@ interface OperationRepository {
     suspend fun insertOperation(operation: Operation)
     fun getOperationsWithRuleAndTags(): Flow<List<OperationWithRuleAndTags>>
     fun getRulesWithOperations(): Flow<List<RuleWithOperations>>
+    suspend fun deleteOperations(date: Long)
 }

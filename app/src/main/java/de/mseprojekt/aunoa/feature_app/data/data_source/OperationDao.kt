@@ -21,4 +21,7 @@ interface OperationDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOperation(operation : Operation)
+
+    @Query("DELETE from operation WHERE date < :date")
+    suspend fun deleteOperations(date: Long)
 }
