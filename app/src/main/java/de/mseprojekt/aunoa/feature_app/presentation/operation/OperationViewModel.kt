@@ -89,6 +89,28 @@ class OperationViewModel @Inject constructor(
                     )
                 }
             }
+            is OperationEvent.DeleteRegion -> {
+                viewModelScope.launch {
+                    cellUseCases.removeRegion(event.value)
+                    cellUseCases.getRegions().also { regions ->
+                        _state.value = _state.value.copy(
+                            regions = regions
+                        )
+                        println(regions);
+                    }
+                }
+            }
+            is OperationEvent.AddRegion -> {
+                viewModelScope.launch {
+                    cellUseCases.insertRegion(event.value)
+                    cellUseCases.getRegions().also { regions ->
+                        _state.value = _state.value.copy(
+                            regions = regions
+                        )
+                        println(regions);
+                    }
+                }
+            }
         }
     }
 

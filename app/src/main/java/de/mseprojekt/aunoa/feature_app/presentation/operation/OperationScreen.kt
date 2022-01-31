@@ -18,13 +18,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import de.mseprojekt.aunoa.R
-import de.mseprojekt.aunoa.feature_app.presentation.edit_rule.EditRuleEvent
-import de.mseprojekt.aunoa.feature_app.presentation.edit_rule.EditRuleViewModel
 import de.mseprojekt.aunoa.feature_app.presentation.util.Screen
 import de.mseprojekt.aunoa.feature_app.presentation.util.bottom_navigation_bar.BottomNavigationBar
 import de.mseprojekt.aunoa.feature_app.presentation.util.card.AunoaCard
@@ -277,6 +274,9 @@ fun SettingsScreen(
     viewModel: OperationViewModel = hiltViewModel(),
 ) {
     val scrollState = rememberScrollState()
+    var openRegionDialog = remember { mutableStateOf(false) }
+    var newRegionText by remember { mutableStateOf("") }
+    var newRegionTime by remember { mutableStateOf("10") }
     val appState = viewModel.state.value.appState
     val regions = viewModel.state.value.regions
     Box(
@@ -298,7 +298,6 @@ fun SettingsScreen(
                     style = MaterialTheme.typography.h6,
                     modifier = Modifier.padding(bottom = 10.dp)
                 )
-                val mRememberObserver = remember { mutableStateOf(true) }
                 Row {
                     Row {
                         RadioButton(
@@ -325,11 +324,60 @@ fun SettingsScreen(
                 Text("Regions", style = MaterialTheme.typography.h6)
                 Column() {
                     regions.forEach { region ->
-                        ListItem(text = { Text(text = region.name)})
+                        ListItem(text = { Text(text = region.name)}, trailing = {IconButton(
+                            onClick = { viewModel.onEvent(OperationEvent.DeleteRegion(region.regionId!!)) },
+                        ){
+                            Icon(
+                                Icons.Filled.Delete,
+                                contentDescription = "Delete Region",
+                                tint = Color.Red
+                            )
+                        }})
                     }
+                }
+                Spacer(modifier = Modifier.height(5.dp))
+                Button(onClick = { openRegionDialog.value = true }) {
+                    Text(text = "Add region")
                 }
             }
         }
+    }
+
+    if (openRegionDialog.value) {
+        AlertDialog(
+            onDismissRequest = {
+                openRegionDialog.value = false
+            },
+            text = {
+                Column() {
+                    Text(text = "Please enter a Region name")
+                    TextField(
+                        value = newRegionText,
+                        onValueChange = { newRegionText = it }
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(text = "Please choose the scanning time")
+                    TextField(value = newRegionTime, onValueChange = {})
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.onEvent(OperationEvent.AddRegion(newRegionText))
+                        openRegionDialog.value = false
+                    }) {
+                    Text("Add Region")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        openRegionDialog.value = false
+                    }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 

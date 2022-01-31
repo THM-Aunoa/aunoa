@@ -7,5 +7,7 @@ sealed class OperationEvent : AunoaEventInterface{
     data class EnteredUsername(val value: String): OperationEvent()
     data class EnteredEmail(val value: String): OperationEvent()
     data class ToggleAppState(val value: Boolean): OperationEvent()
+    data class DeleteRegion(val value: Int): OperationEvent()
+    data class AddRegion(val value: String): OperationEvent()
     object SaveUserDetails: OperationEvent()
 }
