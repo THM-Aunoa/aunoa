@@ -197,12 +197,13 @@ sealed class BottomSheetScreen() {
 
 @Composable
 fun InfoScreen() {
+    val scrollState = rememberScrollState()
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(colors.background, shape = RectangleShape)
     ) {
-        Column(modifier = Modifier.padding(all = 15.dp)) {
+        Column(modifier = Modifier.padding(all = 15.dp).verticalScroll(scrollState) ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -220,6 +221,29 @@ fun InfoScreen() {
                 text = "Aunoa supports you in your daily routine. To do this, you can set rules that automatically change states on your smartphone. There are actions and triggers for this. Just try it!",
                 style = MaterialTheme.typography.body1
             )
+            Spacer(modifier = Modifier.height(25.dp))
+            Text(text = "But maybe these few words will help you to use the app for the first time:")
+            Text(
+                text = "You can create new rules that can then automate device settings. " +
+                        "A rule always has an action and a trigger. " +
+                        "In the Rules Hub there are some examples that you can directly apply and then edit. " +
+                        "A trigger is a value at which the app executes a rule. " +
+                        "This value can currently be a time, a location or a radio mast. " +
+                        "Currently, only the volume of the smartphone can be turned on and off as an action ",
+                style = MaterialTheme.typography.body1
+            )
+            Spacer(modifier = Modifier.height(25.dp))
+            Text(
+                text = "Other planned features:\n" +
+                        "- Wifi Trigger\n" +
+                        "- Bluetooth Trigger\n" +
+                        "- NFC Trigger\n" +
+                        "- Spotify Action\n" +
+                        "- Detailed overview of the latest radio masts",
+                style = MaterialTheme.typography.body1
+            )
+            Spacer(modifier = Modifier.height(25.dp))
+            Text(text = "Version 1.0.0")
         }
     }
 }
@@ -333,7 +357,7 @@ fun SettingsScreen(
                 }
             }
             Spacer(modifier = Modifier.height(10.dp))
-            Text("Here you can control the app status. If you want the app not to run your rules, you can set the status to disabled.")
+            Text("Here you have the overview of your regions that you can use in your cell trigger. You can add new regions for new rules or delete old regions. But be careful: If you delete a region, you also remove the rules that are linked to this region!")
             Spacer(modifier = Modifier.height(10.dp))
             Column() {
                 Text("Regions", style = MaterialTheme.typography.h6)
