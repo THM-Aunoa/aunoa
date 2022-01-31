@@ -270,6 +270,14 @@ class AunoaService: Service() {
                 }
             }
             delay(delay)
+            val regions = cellUseCases.getRegions()
+            for (region in regions){
+                if(region.scanUntil-LocalDateTime.now().toEpochSecond(ZoneOffset.UTC) > 0){
+                    scanMode = true
+                    scanUntil = LocalDateTime.ofEpochSecond(region.scanUntil,0, ZoneOffset.UTC)
+                    scanRegion = region.regionId!!
+                }
+            }
             while (isrunning) {
                 if (run > 60) {
                     run = 0

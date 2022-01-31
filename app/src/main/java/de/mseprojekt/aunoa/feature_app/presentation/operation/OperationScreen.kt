@@ -350,8 +350,14 @@ fun SettingsScreen(
                             Row(){
                             IconButton(
                                 onClick = {
+                                    val timeDif = region.scanUntil-LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+                                    val time = if (timeDif > 0){
+                                        timeDif / 60
+                                    }else{
+                                        0
+                                    }
                                     regionName = region.name
-                                    regionTime = "10"
+                                    regionTime = time.toString()
                                     regionId = region.regionId!!
                                     openRegionDialog.value = true },
                             ) {
