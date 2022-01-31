@@ -1,16 +1,19 @@
 package de.mseprojekt.aunoa.feature_app.presentation.my_rules
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
+import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -106,10 +109,17 @@ fun MyRulesScreen(
             }
         },
         floatingActionButton = {
+            val backgroundColor: Color
+            if (isSystemInDarkTheme()) {
+                backgroundColor = colors.primary
+            } else {
+                backgroundColor = colors.secondary
+            }
             FloatingActionButton(
                 onClick = {
                     navController.navigate(Screen.EditRuleScreen.route)
-                }
+                },
+                backgroundColor = backgroundColor
             ) {
                 Icon(Icons.Filled.Add, "Add Rule")
             }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
+import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
@@ -46,28 +47,21 @@ fun OperationScreen(
     navController: NavController,
     viewModel: OperationViewModel = hiltViewModel(),
 ) {
+
     val scope = rememberCoroutineScope()
     val bottomScaffoldState = rememberBottomSheetScaffoldState()
     var currentBottomSheet: BottomSheetScreen? by remember {
         mutableStateOf(null)
     }
-
-    if (bottomScaffoldState.bottomSheetState.isCollapsed)
+    if (bottomScaffoldState.bottomSheetState.isCollapsed) {
         currentBottomSheet = null
-
-    // to set the current sheet to null when the bottom sheet closes
-    if (bottomScaffoldState.bottomSheetState.isCollapsed)
-        currentBottomSheet = null
-
-
+    }
     val closeSheet: () -> Unit = {
         scope.launch {
             bottomScaffoldState.bottomSheetState.collapse()
 
         }
     }
-
-
     val openSheet: (BottomSheetScreen) -> Unit = {
         scope.launch {
             currentBottomSheet = it
@@ -75,8 +69,6 @@ fun OperationScreen(
         }
 
     }
-
-
     val state = viewModel.state.value
     val scaffoldState = rememberScaffoldState()
     val scrollState = rememberScrollState()
@@ -94,6 +86,7 @@ fun OperationScreen(
         TopBarActionItem(
             "user",
             Icons.Filled.Person,
+            //{ openSheet(BottomSheetScreen.UserScreen) }),
             { openSheet(BottomSheetScreen.UserScreen) }),
     )
 
@@ -207,7 +200,7 @@ fun InfoScreen() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White, shape = RectangleShape)
+            .background(colors.background, shape = RectangleShape)
     ) {
         Column(modifier = Modifier.padding(all = 15.dp)) {
             Column(
@@ -242,7 +235,7 @@ fun UserScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White, shape = RectangleShape)
+            .background(colors.background, shape = RectangleShape)
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier
@@ -299,7 +292,7 @@ fun SettingsScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White, shape = RectangleShape)
+            .background(colors.background, shape = RectangleShape)
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier
@@ -347,36 +340,38 @@ fun SettingsScreen(
                 Column() {
                     regions.forEach { region ->
                         ListItem(text = { Text(text = region.name) }, trailing = {
-                            Row(){
-                            IconButton(
-                                onClick = {
-                                    val timeDif = region.scanUntil-LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
-                                    val time = if (timeDif > 0){
-                                        timeDif / 60
-                                    }else{
-                                        0
-                                    }
-                                    regionName = region.name
-                                    regionTime = time.toString()
-                                    regionId = region.regionId!!
-                                    openRegionDialog.value = true },
-                            ) {
-                                Icon(
-                                    Icons.Filled.Edit,
-                                    contentDescription = "Edit Region",
-                                    tint = Color.Black
-                                )
+                            Row() {
+                                IconButton(
+                                    onClick = {
+                                        val timeDif = region.scanUntil - LocalDateTime.now()
+                                            .toEpochSecond(ZoneOffset.UTC)
+                                        val time = if (timeDif > 0) {
+                                            timeDif / 60
+                                        } else {
+                                            0
+                                        }
+                                        regionName = region.name
+                                        regionTime = time.toString()
+                                        regionId = region.regionId!!
+                                        openRegionDialog.value = true
+                                    },
+                                ) {
+                                    Icon(
+                                        Icons.Filled.Edit,
+                                        contentDescription = "Edit Region",
+                                        tint = Color.Gray
+                                    )
+                                }
+                                IconButton(
+                                    onClick = { viewModel.onEvent(OperationEvent.DeleteRegion(region.regionId!!)) },
+                                ) {
+                                    Icon(
+                                        Icons.Filled.Delete,
+                                        contentDescription = "Delete Region",
+                                        tint = Color.Red
+                                    )
+                                }
                             }
-                            IconButton(
-                                onClick = { viewModel.onEvent(OperationEvent.DeleteRegion(region.regionId!!)) },
-                            ) {
-                                Icon(
-                                    Icons.Filled.Delete,
-                                    contentDescription = "Delete Region",
-                                    tint = Color.Red
-                                )
-                            }
-                        }
                         })
                     }
                 }
@@ -421,7 +416,7 @@ fun RegionDialog(
                         value = newRegionText,
                         onValueChange = { newRegionText = it },
                     )
-                }else{
+                } else {
                     TextField(
                         value = newRegionText,
                         onValueChange = { newRegionText = it },
@@ -430,7 +425,11 @@ fun RegionDialog(
                 }
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(text = "Please choose the scanning time in min")
-                TextField(value = newRegionTime, onValueChange = {newRegionTime= it}, keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number))
+                TextField(
+                    value = newRegionTime,
+                    onValueChange = { newRegionTime = it },
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+                )
             }
         },
         confirmButton = {
@@ -443,7 +442,7 @@ fun RegionDialog(
                                 newRegionTime.toLong()
                             )
                         )
-                    }else{
+                    } else {
                         viewModel.onEvent(
                             OperationEvent.EditRegion(
                                 id,
