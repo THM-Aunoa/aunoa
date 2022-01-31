@@ -304,7 +304,7 @@ fun SettingsScreen(
                             selected = appState,
                             onClick = { viewModel.onEvent(OperationEvent.ToggleAppState(true)) },
                             enabled = true,
-                            colors = RadioButtonDefaults.colors(selectedColor = Color.Magenta)
+                            colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colors.primary)
                         )
                         Text(text = "Active", modifier = Modifier.padding(start = 8.dp))
                     }
@@ -314,7 +314,7 @@ fun SettingsScreen(
                             selected = !appState,
                             onClick = { viewModel.onEvent(OperationEvent.ToggleAppState(false)) },
                             enabled = true,
-                            colors = RadioButtonDefaults.colors(selectedColor = Color.Magenta)
+                            colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colors.primary)
                         )
                         Text(text = "Disabled", modifier = Modifier.padding(start = 8.dp))
                     }
@@ -356,7 +356,7 @@ fun SettingsScreen(
                         onValueChange = { newRegionText = it }
                     )
                     Spacer(modifier = Modifier.height(10.dp))
-                    Text(text = "Please choose the scanning time")
+                    Text(text = "Please choose the scanning time in min")
                     TextField(value = newRegionTime, onValueChange = {})
                 }
             },
