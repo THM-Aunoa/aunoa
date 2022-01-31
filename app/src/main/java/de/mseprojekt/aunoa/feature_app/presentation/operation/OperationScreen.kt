@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -17,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -229,6 +231,7 @@ fun InfoScreen() {
     }
 }
 
+@ExperimentalMaterialApi
 @Composable
 fun UserScreen(
     viewModel: OperationViewModel = hiltViewModel(),
@@ -377,13 +380,13 @@ fun SettingsScreen(
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(text = "Please choose the scanning time in min")
-                    TextField(value = newRegionTime, onValueChange = {})
+                    TextField(value = newRegionTime, onValueChange = {newRegionTime= it}, keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number))
                 }
             },
             confirmButton = {
                 Button(
                     onClick = {
-                        viewModel.onEvent(OperationEvent.AddRegion(newRegionText))
+                        viewModel.onEvent(OperationEvent.AddRegion(newRegionText, newRegionTime.toLong()))
                         openRegionDialog.value = false
                     }) {
                     Text("Add Region")

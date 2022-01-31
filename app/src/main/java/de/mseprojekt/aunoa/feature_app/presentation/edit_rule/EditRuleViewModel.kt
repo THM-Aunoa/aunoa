@@ -155,15 +155,6 @@ class EditRuleViewModel @Inject constructor(
                         intent.putExtra(INTENT_COMMAND, "Update")
                         application.startForegroundService(intent)
 
-                        /*
-                        val intent2 = Intent(application, AunoaService::class.java)
-                        intent2.putExtra(INTENT_COMMAND, "Scan")
-                        intent2.putExtra(INTENT_SCAN_UNTIL, LocalDateTime.now().toEpochSecond(
-                            ZoneOffset.UTC).toString())
-                        intent2.putExtra(INTENT_SCAN_REGION, "Home")
-                        application.startForegroundService(intent2)
-                         */
-
                     } catch (e: Error) {
                         _eventFlow.emit(
                             UiEvent.ShowSnackbar(
