@@ -10,4 +10,5 @@ sealed class OperationEvent : AunoaEventInterface{
     data class AddRegion(val value: String, val minutes: Long): OperationEvent()
     data class EditRegion(val id: Int, val value: String, val minutes: Long): OperationEvent()
     object SaveUserDetails: OperationEvent()
+    data class RemoveCell(val id: Long) : OperationEvent()
 }

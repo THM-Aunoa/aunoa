@@ -8,5 +8,8 @@ data class CellUseCases(
     val removeRegion: RemoveRegion,
     val getRegions: GetRegions,
     val getRegionIdByName: GetRegionIdByName,
-    val editRegion: EditRegion
+    val editRegion: EditRegion,
+    val getLastCells: GetLastCells,
+    val insertLastCell: InsertLastCell,
+    val getRegionIdForCellId: GetRegionIdForCellId
 )

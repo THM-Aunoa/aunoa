@@ -4,9 +4,11 @@ import com.google.gson.Gson
 import de.mseprojekt.aunoa.feature_app.data.data_source.CellDao
 import de.mseprojekt.aunoa.feature_app.data.data_source.RuleDao
 import de.mseprojekt.aunoa.feature_app.domain.model.Cell
+import de.mseprojekt.aunoa.feature_app.domain.model.LastCells
 import de.mseprojekt.aunoa.feature_app.domain.model.Region
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.CellTrigger
 import de.mseprojekt.aunoa.feature_app.domain.repository.CellRepository
+import kotlinx.coroutines.flow.Flow
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.concurrent.Callable
@@ -59,6 +61,10 @@ class CellRepositoryImpl (
         }
     }
 
+    override fun getLastCells(): Flow<List<LastCells>> {
+        return cellDao.getLastCells()
+    }
+
     override fun deleteRegion(id: Int) {
         val callable = Callable{ ruleDao.getRulesWithoutFlow() }
 
@@ -108,4 +114,22 @@ class CellRepositoryImpl (
 
         return future!!.get()
     }
+
+    override fun insertLastCell(last: LastCells){
+        val callable = Callable{ cellDao.insertLastCell(last) }
+
+        val future = Executors.newSingleThreadExecutor().submit(callable)
+
+        return future!!.get()
+    }
+
+    override fun getRegionIdForCellId(cellId: Long): Int?{
+        val callable = Callable{ cellDao.getRegionIdForCellId(cellId) }
+
+        val future = Executors.newSingleThreadExecutor().submit(callable)
+
+        return future!!.get()
+    }
+
+
 }

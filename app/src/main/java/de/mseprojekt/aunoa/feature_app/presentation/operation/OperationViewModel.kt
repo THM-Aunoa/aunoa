@@ -45,9 +45,11 @@ class OperationViewModel @Inject constructor(
     val eventFlow = _eventFlow.asSharedFlow()
 
     private var getOperationsJob: Job? = null
+    private var getLastCellsJob: Job? = null
 
     init {
         getOperations()
+        getLastCells()
         viewModelScope.launch {
             userUseCases.getUser().also { user ->
                 if (user != null) {
@@ -147,6 +149,12 @@ class OperationViewModel @Inject constructor(
                     application.startForegroundService(intent2)
                 }
             }
+            is OperationEvent.RemoveCell -> {
+                viewModelScope.launch {
+                    cellUseCases.removeCell(event.id)
+                }
+
+            }
         }
     }
 
@@ -161,7 +169,19 @@ class OperationViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
+    private fun getLastCells() {
+        getLastCellsJob?.cancel()
+        getLastCellsJob = cellUseCases.getLastCells()
+            .onEach { cells ->
+                _state.value = state.value.copy(
+                    cells = cells
+                )
+            }
+            .launchIn(viewModelScope)
+    }
+
     sealed class UiEvent {
         data class SaveUser(val message: String) : UiEvent()
+        data class ReturnRegionId(val id: Int) : UiEvent()
     }
 }

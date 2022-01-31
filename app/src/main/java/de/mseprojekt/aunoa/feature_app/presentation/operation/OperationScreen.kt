@@ -30,6 +30,7 @@ import de.mseprojekt.aunoa.feature_app.presentation.util.bottom_navigation_bar.B
 import de.mseprojekt.aunoa.feature_app.presentation.util.card.AunoaCard
 import de.mseprojekt.aunoa.feature_app.presentation.util.card.CardActionItem
 import de.mseprojekt.aunoa.feature_app.presentation.util.chip.AunoaChip
+import de.mseprojekt.aunoa.feature_app.presentation.util.spinner.Spinner
 import de.mseprojekt.aunoa.feature_app.presentation.util.top_app_bar.AunoaTopBar
 import de.mseprojekt.aunoa.feature_app.presentation.util.top_app_bar.TopBarActionItem
 import kotlinx.coroutines.delay
@@ -284,6 +285,7 @@ fun UserScreen(
     }
 }
 
+
 @ExperimentalMaterialApi
 @Composable
 fun SettingsScreen(
@@ -291,11 +293,16 @@ fun SettingsScreen(
 ) {
     val scrollState = rememberScrollState()
     var openRegionDialog = remember { mutableStateOf(false) }
+    var openCellDialog = remember { mutableStateOf(false) }
     val appState = viewModel.state.value.appState
     val regions = viewModel.state.value.regions
+    var cells = viewModel.state.value.cells
     var regionName by remember { mutableStateOf(" ") }
+    var selectedRegionName by remember { mutableStateOf("") }
     var regionTime by remember { mutableStateOf("10") }
+    var cellId by remember { mutableStateOf("") }
     var regionId by remember { mutableStateOf(-1) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -347,36 +354,38 @@ fun SettingsScreen(
                 Column() {
                     regions.forEach { region ->
                         ListItem(text = { Text(text = region.name) }, trailing = {
-                            Row(){
-                            IconButton(
-                                onClick = {
-                                    val timeDif = region.scanUntil-LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
-                                    val time = if (timeDif > 0){
-                                        timeDif / 60
-                                    }else{
-                                        0
-                                    }
-                                    regionName = region.name
-                                    regionTime = time.toString()
-                                    regionId = region.regionId!!
-                                    openRegionDialog.value = true },
-                            ) {
-                                Icon(
-                                    Icons.Filled.Edit,
-                                    contentDescription = "Edit Region",
-                                    tint = Color.Black
-                                )
+                            Row() {
+                                IconButton(
+                                    onClick = {
+                                        val timeDif = region.scanUntil - LocalDateTime.now()
+                                            .toEpochSecond(ZoneOffset.UTC)
+                                        val time = if (timeDif > 0) {
+                                            timeDif / 60
+                                        } else {
+                                            0
+                                        }
+                                        regionName = region.name
+                                        regionTime = time.toString()
+                                        regionId = region.regionId!!
+                                        openRegionDialog.value = true
+                                    },
+                                ) {
+                                    Icon(
+                                        Icons.Filled.Edit,
+                                        contentDescription = "Edit Region",
+                                        tint = Color.Black
+                                    )
+                                }
+                                IconButton(
+                                    onClick = { viewModel.onEvent(OperationEvent.DeleteRegion(region.regionId!!)) },
+                                ) {
+                                    Icon(
+                                        Icons.Filled.Delete,
+                                        contentDescription = "Delete Region",
+                                        tint = Color.Red
+                                    )
+                                }
                             }
-                            IconButton(
-                                onClick = { viewModel.onEvent(OperationEvent.DeleteRegion(region.regionId!!)) },
-                            ) {
-                                Icon(
-                                    Icons.Filled.Delete,
-                                    contentDescription = "Delete Region",
-                                    tint = Color.Red
-                                )
-                            }
-                        }
                         })
                     }
                 }
@@ -390,11 +399,117 @@ fun SettingsScreen(
                     Text(text = "Add region")
                 }
             }
+            Column() {
+                Text("Cells", style = MaterialTheme.typography.h6)
+                Column() {
+                    cells.forEach { cell ->
+                        ListItem(text = {
+                            Row() {
+                                val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
+                                Text(
+                                    text = LocalDateTime.ofEpochSecond(
+                                        cell.date,
+                                        0,
+                                        ZoneOffset.UTC
+                                    ).format(formatter)
+                                )
+                                var rName = ""
+                                Spacer(modifier = Modifier.width(20.dp))
+                                if (cell.regionId != null) {
+                                    for (region in regions) {
+                                        if (region.regionId == cell.regionId) {
+                                            rName = region.name
+                                        }
+                                    }
+                                    AunoaChip(
+                                        label = rName,
+                                        icon = Icons.Filled.Close,
+                                        onClick = {
+                                            viewModel.onEvent(
+                                                OperationEvent.RemoveCell(
+                                                    cell.cellId
+                                                )
+                                            )
+                                        })
+                                }
+                            }
+
+                        }, trailing = {
+                            Row() {
+                                IconButton(
+                                    onClick = {
+                                        cellId = cell.cellId.toString()
+                                        if (cell.regionId != null) {
+                                            for (region in regions) {
+                                                if (region.regionId == cell.regionId) {
+                                                    selectedRegionName = region.name
+                                                    break
+                                                }
+                                            }
+                                        } else {
+                                            selectedRegionName = "None"
+                                        }
+                                        openCellDialog.value = true
+                                    },
+                                ) {
+                                    Icon(
+                                        Icons.Filled.Edit,
+                                        contentDescription = "Edit Cell",
+                                        tint = Color.Black
+                                    )
+                                }
+                            }
+                        })
+                    }
+                }
+                Spacer(modifier = Modifier.height(15.dp))
+            }
         }
     }
 
     if (openRegionDialog.value) {
         RegionDialog(viewModel, openRegionDialog, regionName, regionTime, regionId)
+    }
+    if (openCellDialog.value) {
+        AlertDialog(
+            onDismissRequest = {
+                openCellDialog.value = false
+            },
+            text = {
+                Column() {
+                    Text(text = "Cell Id:")
+                    TextField(
+                        value = cellId,
+                        onValueChange = { cellId = it },
+                        enabled = false
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(text = "Please chose a Region Region:")
+                    Spinner(
+                        label = "Region",
+                        options = regions.map { it.name } + "None" ,
+                        selected = selectedRegionName,
+                        callback = { })
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        openCellDialog.value = false
+                    }) {
+                    Text("Edit Cell")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        openCellDialog.value = false
+                    }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
@@ -421,7 +536,7 @@ fun RegionDialog(
                         value = newRegionText,
                         onValueChange = { newRegionText = it },
                     )
-                }else{
+                } else {
                     TextField(
                         value = newRegionText,
                         onValueChange = { newRegionText = it },
@@ -430,7 +545,11 @@ fun RegionDialog(
                 }
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(text = "Please choose the scanning time in min")
-                TextField(value = newRegionTime, onValueChange = {newRegionTime= it}, keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number))
+                TextField(
+                    value = newRegionTime,
+                    onValueChange = { newRegionTime = it },
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+                )
             }
         },
         confirmButton = {
@@ -443,7 +562,7 @@ fun RegionDialog(
                                 newRegionTime.toLong()
                             )
                         )
-                    }else{
+                    } else {
                         viewModel.onEvent(
                             OperationEvent.EditRegion(
                                 id,

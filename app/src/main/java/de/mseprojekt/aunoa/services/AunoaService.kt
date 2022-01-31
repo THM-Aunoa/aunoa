@@ -674,7 +674,14 @@ class AunoaService: Service() {
             == PackageManager.PERMISSION_GRANTED &&
             checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
             == PackageManager.PERMISSION_GRANTED) {
-            currentCellId = getCellId(manager)
+            val cellId = getCellId(manager)
+            if(cellId!=null) {
+                if(cellId != currentCellId){
+                    val regionId = cellUseCases.getRegionIdForCellId(cellId)
+                    cellUseCases.insertLastCell(cellId, regionId)
+                }
+                currentCellId = getCellId(manager)
+            }
         }else {
             Log.d("Cell-Error", "No Permissions to read Current Cell Information")
         }

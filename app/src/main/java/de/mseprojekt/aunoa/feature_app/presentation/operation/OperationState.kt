@@ -1,6 +1,7 @@
 package de.mseprojekt.aunoa.feature_app.presentation.operation
 
 import de.mseprojekt.aunoa.feature_app.data.data_source.relations.OperationWithRuleAndTags
+import de.mseprojekt.aunoa.feature_app.domain.model.LastCells
 import de.mseprojekt.aunoa.feature_app.domain.model.Region
 
 data class OperationState (
@@ -9,5 +10,6 @@ data class OperationState (
     val username: String = "",
     val email: String = "",
     val appState: Boolean = false,
-    val regions: List<Region> = emptyList()
+    val regions: List<Region> = emptyList(),
+    val cells: List<LastCells> = emptyList()
 )

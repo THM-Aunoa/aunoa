@@ -5,11 +5,10 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import de.mseprojekt.aunoa.feature_app.data.util.Converters
 import de.mseprojekt.aunoa.feature_app.domain.model.*
-import de.mseprojekt.aunoa.feature_app.domain.model.User
 
 
 @Database(
-    entities = [Rule::class, Operation::class, Act::class, Trig::class, Tag::class, RuleTagCrossRef::class, State::class, Cell::class, Region::class, User::class],
+    entities = [Rule::class, Operation::class, Act::class, Trig::class, Tag::class, RuleTagCrossRef::class, State::class, Cell::class, Region::class, User::class, LastCells::class],
     version = 1,
     exportSchema = false
 )
