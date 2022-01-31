@@ -13,7 +13,7 @@ interface OperationDao {
     @Query("SELECT * FROM operation")
     fun getOperationsWithRuleAndTags(): Flow<List<OperationWithRuleAndTags>>
 
-    @Query("SELECT * FROM operation")
+    @Query("SELECT * FROM rule")
     fun getRulesWithOperations(): Flow<List<RuleWithOperations>>
 
     @Query("SELECT * FROM operation WHERE ruleId = :id")

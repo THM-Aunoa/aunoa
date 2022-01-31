@@ -11,16 +11,18 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
-import android.os.IBinder
-import android.util.Log
-import androidx.core.app.NotificationCompat
-import de.mseprojekt.aunoa.R
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import android.media.AudioManager
 import android.net.ConnectivityManager
+import android.net.wifi.WifiManager
+import android.os.Build
+import android.os.IBinder
+import android.telephony.*
+import android.telephony.cdma.CdmaCellLocation
+import android.telephony.gsm.GsmCellLocation
+import android.text.TextUtils
+import android.util.Log
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.core.app.NotificationCompat
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
@@ -28,41 +30,42 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.Task
 import com.google.gson.Gson
-import dagger.hilt.android.AndroidEntryPoint
-import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.ActionObject
-import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.VolumeAction
-import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.RuleUseCases
-import de.mseprojekt.aunoa.other.distanceBetweenTwoPoints
-import java.time.LocalDate
-import java.time.LocalTime
-import javax.inject.Inject
-import de.mseprojekt.aunoa.feature_app.domain.model.UnzippedRule
-import de.mseprojekt.aunoa.feature_app.domain.use_case.operation.OperationsUseCases
-import de.mseprojekt.aunoa.feature_app.presentation.MainActivity
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import android.net.wifi.WifiManager
-import android.text.TextUtils
-import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.*
-import java.lang.reflect.Method
-import android.os.Build
-import android.telephony.*
-import android.telephony.cdma.CdmaCellLocation
-import android.telephony.gsm.GsmCellLocation
-import androidx.compose.material.ExperimentalMaterialApi
-import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.SpotifyAction
-import de.mseprojekt.aunoa.feature_app.domain.use_case.cell.CellUseCases
-import java.time.LocalDateTime
-
-import com.spotify.android.appremote.api.ConnectionParams;
+import com.spotify.android.appremote.api.ConnectionParams
 import com.spotify.android.appremote.api.Connector.ConnectionListener
-import com.spotify.android.appremote.api.SpotifyAppRemote;
+import com.spotify.android.appremote.api.SpotifyAppRemote
+import dagger.hilt.android.AndroidEntryPoint
+import de.mseprojekt.aunoa.R
+import de.mseprojekt.aunoa.feature_app.domain.model.UnzippedRule
+import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.ActionObject
+import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.SpotifyAction
+import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.VolumeAction
+import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.*
+import de.mseprojekt.aunoa.feature_app.domain.use_case.cell.CellUseCases
+import de.mseprojekt.aunoa.feature_app.domain.use_case.operation.OperationsUseCases
+import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.RuleUseCases
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rulesHub.RulesHubUseCases
 import de.mseprojekt.aunoa.feature_app.domain.use_case.state.StateUseCases
+import de.mseprojekt.aunoa.feature_app.presentation.MainActivity
+import de.mseprojekt.aunoa.other.distanceBetweenTwoPoints
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import java.lang.reflect.Method
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import javax.inject.Inject
 
+const val INTENT_SCAN_REGION = "Region"
+const val INTENT_SCAN_UNTIL = "Until"
 const val INTENT_COMMAND = "Command"
 const val INTENT_COMMAND_EXIT = "Exit"
+const val INTENT_COMMAND_SCAN = "Scan"
 const val INTENT_COMMAND_START = "Start"
 const val INTENT_COMMAND_UPDATE = "Update"
 
@@ -133,6 +136,27 @@ class AunoaService: Service() {
         if (command == INTENT_COMMAND_UPDATE) {
             CoroutineScope(Dispatchers.Main).launch {
                 updateRuleList()
+            }
+        }
+        if (command == INTENT_COMMAND_SCAN) {
+            CoroutineScope(Dispatchers.Main).launch {
+                val region = intent.getStringExtra(INTENT_SCAN_REGION)
+                val regionId = region?.let { cellUseCases.getRegionIdByName(it) }
+                val until = intent.getStringExtra(INTENT_SCAN_UNTIL)?.toLong()
+                Log.d("s", until.toString())
+                Log.d("a", regionId.toString())
+                Log.d("s", region.toString())
+                if (region?.isNotEmpty()!! && regionId != null && until != null) {
+                    scanMode = true
+                    scanUntil = LocalDateTime.ofEpochSecond(
+                        until,
+                        0,
+                        ZoneOffset.UTC
+                    )
+                    scanRegion = regionId
+                } else {
+                    scanMode = false
+                }
             }
         }
         if (command == INTENT_COMMAND_START && !this.isrunning){
