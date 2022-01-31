@@ -57,7 +57,11 @@ interface RuleDao {
         deleteActFromRule(ruleId)
         deleteTrigFromRule(ruleId)
         deleteMainRule(ruleId)
+        deleteOperationsFromRule(ruleId)
     }
+
+    @Query("DELETE from operation WHERE ruleId = :ruleId")
+    fun deleteOperationsFromRule(ruleId: Int)
 
     @Query("DELETE from rule WHERE ruleId = :ruleId")
     fun deleteMainRule(ruleId: Int)
