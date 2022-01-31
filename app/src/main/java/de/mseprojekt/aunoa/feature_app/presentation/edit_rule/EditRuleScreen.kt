@@ -1,5 +1,7 @@
 package de.mseprojekt.aunoa.feature_app.presentation.edit_rule
 
+import android.app.TimePickerDialog
+import android.content.Context
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,6 +24,7 @@ import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TimeTrigger
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TriggerObject
 import de.mseprojekt.aunoa.feature_app.presentation.util.bottom_navigation_bar.BottomNavigationBar
 import de.mseprojekt.aunoa.feature_app.presentation.util.chip.AunoaChip
+import de.mseprojekt.aunoa.feature_app.presentation.util.spinner.Spinner
 import de.mseprojekt.aunoa.feature_app.presentation.util.top_app_bar.AunoaTopBar
 import de.mseprojekt.aunoa.feature_app.presentation.util.top_app_bar.TopBarActionItem
 import kotlinx.coroutines.delay
@@ -156,6 +159,10 @@ fun EditRuleScreen(
                     Spacer(modifier = Modifier.height(10.dp))
                     when (state.triggerObjectName) {
                         "TimeTrigger" -> {
+                            TimeTriggerEdit()
+                        }
+                        "CellTrigger" -> {
+                            CellTriggerEdit()
                         }
                         "LocationTrigger" -> {
                             LocationTriggerEdit()
@@ -219,7 +226,8 @@ fun EditRuleScreen(
             text = {
                 val myData = listOf(
                     Triple("TimeTrigger", "Using day and time", Icons.Filled.AccessTime),
-                    Triple("LocationTrigger", "Using coordinates", Icons.Filled.MyLocation)
+                    Triple("LocationTrigger", "Using coordinates", Icons.Filled.MyLocation),
+                    Triple("CellTrigger", "Using your defined locations", Icons.Filled.NetworkCell)
                 )
                 LazyColumn {
                     items(myData) { item ->
@@ -291,13 +299,12 @@ fun EditRuleScreen(
     }
 }
 
+@ExperimentalMaterialApi
 @Composable
 fun LocationTriggerEdit(
     viewModel: EditRuleViewModel = hiltViewModel()
 ) {
-    var latitude by remember { mutableStateOf("") }
-    var longitude by remember { mutableStateOf("") }
-    val state: TriggerObject = viewModel.state.value.trigger
+    val state = viewModel.state.value.locationTrigger
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -315,7 +322,7 @@ fun LocationTriggerEdit(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(text = "Location Trigger", style = MaterialTheme.typography.h6)
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = { viewModel.onEvent(EditRuleEvent.RemoveTrigger) }) {
                 Icon(
                     imageVector = Icons.Filled.Delete,
                     contentDescription = "Remove Trigger",
@@ -323,22 +330,167 @@ fun LocationTriggerEdit(
                 )
             }
         }
-        //Text("Latitude", style = MaterialTheme.typography.h6)
-        /*OutlinedTextField(
-            value = ,
-            onValueChange = { latitude = it },
+        OutlinedTextField(
+            value = state.latitude.toString(),
+            onValueChange = { viewModel.onEvent(EditRuleEvent.EnteredLatitude(it)) },
             label = { Text("Latitude") },
             modifier = Modifier
                 .fillMaxWidth(1f)
-        )*/
+        )
         Spacer(modifier = Modifier.height(10.dp))
-        //Text("Longitude", style = MaterialTheme.typography.h6)
         OutlinedTextField(
-            value = longitude,
-            onValueChange = { longitude = it },
+            value = state.longitude.toString(),
+            onValueChange = { viewModel.onEvent(EditRuleEvent.EnteredLatitude(it)) },
             label = { Text("Longitude") },
             modifier = Modifier
                 .fillMaxWidth(1f)
         )
+        Spacer(modifier = Modifier.height(10.dp))
+        OutlinedTextField(
+            value = state.radius.toString(),
+            onValueChange = { viewModel.onEvent(EditRuleEvent.EnteredRadius(it.toInt())) },
+            label = { Text("Radius") },
+            modifier = Modifier
+                .fillMaxWidth(1f)
+        )
+    }
+}
+
+@ExperimentalMaterialApi
+@Composable
+fun TimeTriggerEdit(
+    viewModel: EditRuleViewModel = hiltViewModel()
+) {
+    val state = viewModel.state.value.timeTrigger
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                BorderStroke(1.dp, Color.LightGray),
+                RoundedCornerShape(5)
+            )
+            .padding(horizontal = 20.dp)
+            .padding(bottom = 20.dp, top = 5.dp),
+        verticalArrangement = Arrangement.Center
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = "Time Trigger", style = MaterialTheme.typography.h6)
+            IconButton(onClick = { viewModel.onEvent(EditRuleEvent.RemoveTrigger) }) {
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = "Remove Trigger",
+                    tint = Color.Gray,
+                )
+            }
+        }
+        Text(text = "Start")
+        Row(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = state.startWeekday.toString(),
+                onValueChange = { viewModel.onEvent(EditRuleEvent.EnteredStartDay(it)) },
+                label = { Text("Weekday") },
+                modifier = Modifier
+                    .fillMaxWidth(.4f)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            OutlinedTextField(
+                value = state.startTime.toString(),
+                onValueChange = { viewModel.onEvent(EditRuleEvent.EnteredStartTime(it)) },
+                label = { Text("Time") },
+                modifier = Modifier
+                    .fillMaxWidth(.4f)
+            )
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+        Spinner(options = (0..24).map { it.toString() })
+        Spacer(modifier = Modifier.height(10.dp))
+        Text(text = "End")
+        Row(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = state.endWeekday.toString(),
+                onValueChange = { viewModel.onEvent(EditRuleEvent.EnteredEndDay(it)) },
+                label = { Text("Weekday") },
+                modifier = Modifier
+                    .fillMaxWidth(.4f)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            OutlinedTextField(
+                value = state.endTime.toString(),
+                onValueChange = { viewModel.onEvent(EditRuleEvent.EnteredEndTime(it)) },
+                label = { Text("Time") },
+                modifier = Modifier
+                    .fillMaxWidth(.4f)
+            )
+
+        }
+    }
+}
+
+@ExperimentalMaterialApi
+@Composable
+fun CellTriggerEdit(
+    viewModel: EditRuleViewModel = hiltViewModel()
+) {
+    val state = viewModel.state.value.cellTrigger
+    val regions = viewModel.state.value.regions
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                BorderStroke(1.dp, Color.LightGray),
+                RoundedCornerShape(5)
+            )
+            .padding(horizontal = 20.dp)
+            .padding(bottom = 20.dp, top = 5.dp),
+        verticalArrangement = Arrangement.Center
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = "Cell Trigger", style = MaterialTheme.typography.h6)
+            IconButton(onClick = { viewModel.onEvent(EditRuleEvent.RemoveTrigger) }) {
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = "Remove Trigger",
+                    tint = Color.Gray,
+                )
+            }
+        }
+        Column() {
+            regions.forEach { region ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(
+                        selected = region.name == state.name,
+                        onClick = { viewModel.onEvent(EditRuleEvent.ChoosedRegion(region.name)) },
+                        colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colors.primary),
+                        modifier = Modifier.padding(end = 5.dp)
+                    )
+                    Text(text = region.name)
+                }
+                Spacer(modifier = Modifier.height(5.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun ShowTimePicker(context: Context, initHour: Int, initMinute: Int) {
+    val time = remember { mutableStateOf("") }
+    val timePickerDialog = TimePickerDialog(
+        context,
+        {_, hour : Int, minute: Int ->
+            time.value = "$hour:$minute"
+        }, initHour, initMinute, false
+    )
+    Button(onClick = {
+        timePickerDialog.show()
+    }) {
+        Text(text = "Open Time Picker")
     }
 }

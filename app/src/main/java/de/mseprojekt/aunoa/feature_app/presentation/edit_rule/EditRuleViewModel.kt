@@ -15,9 +15,14 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.Task
+import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.mseprojekt.aunoa.feature_app.domain.model.Tag
+import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.CellTrigger
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.LocationTrigger
+import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TimeTrigger
+import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TriggerObject
+import de.mseprojekt.aunoa.feature_app.domain.use_case.cell.CellUseCases
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.RuleUseCases
 import de.mseprojekt.aunoa.services.AunoaService
 import de.mseprojekt.aunoa.services.INTENT_COMMAND
@@ -29,6 +34,7 @@ import javax.inject.Inject
 @HiltViewModel
 class EditRuleViewModel @Inject constructor(
     private val ruleUseCases: RuleUseCases,
+    private val cellUseCases: CellUseCases,
     private val application: Application,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -51,16 +57,64 @@ class EditRuleViewModel @Inject constructor(
             if (ruleId != -1) {
                 viewModelScope.launch {
                     ruleUseCases.getRuleWithTags(ruleId).also { rule ->
-                        val tags = ruleUseCases.getRuleWithTags(ruleId);
                         _state.value = _state.value.copy(
                             ruleId = ruleId,
                             title = rule.rule.title,
                             description = rule.rule.description,
-                            tags = tags.tags,
+                            tags = rule.tags,
                             priority = rule.rule.priority
                         )
                     }
+                    ruleUseCases.getRule(ruleId).also { rule ->
+                        var trigger: TriggerObject? = null
+                        when (rule!!.content.trig.triggerType) {
+                            "CellTrigger" -> {
+                                trigger =
+                                    Gson().fromJson(
+                                        rule.content.trig.triggerObject,
+                                        CellTrigger::class.java
+                                    )
+                                _state.value = _state.value.copy(
+                                    trigger = trigger,
+                                    cellTrigger = trigger,
+                                    triggerObjectName = "CellTrigger"
+                                )
+                            }
+                            "TimeTrigger" -> {
+                                trigger =
+                                    Gson().fromJson(
+                                        rule.content.trig.triggerObject,
+                                        TimeTrigger::class.java
+                                    )
+                                _state.value = _state.value.copy(
+                                    trigger = trigger,
+                                    timeTrigger = trigger,
+                                    triggerObjectName = "TimeTrigger"
+                                )
+                            }
+                            "LocationTrigger" -> {
+                                trigger =
+                                    Gson().fromJson(
+                                        rule.content.trig.triggerObject,
+                                        LocationTrigger::class.java
+                                    )
+                                _state.value = _state.value.copy(
+                                    trigger = trigger,
+                                    locationTrigger = trigger,
+                                    triggerObjectName = "LocationTrigger"
+                                )
+                            }
+                        }
+
+                    }
                 }
+            }
+        }
+        viewModelScope.launch {
+            cellUseCases.getRegions().also { regions ->
+                _state.value = _state.value.copy(
+                    regions = regions
+                )
             }
         }
     }
@@ -108,6 +162,34 @@ class EditRuleViewModel @Inject constructor(
                     priority = event.value
                 )
             }
+            is EditRuleEvent.ChoosedRegion -> {
+                _state.value = _state.value.copy(
+                    cellTrigger = _state.value.cellTrigger!!.copy(
+                        name = event.value
+                    )
+                )
+            }
+            is EditRuleEvent.EnteredLatitude -> {
+                _state.value = _state.value.copy(
+                    locationTrigger = _state.value.locationTrigger!!.copy(
+                        latitude = event.value.toDouble()
+                    )
+                )
+            }
+            is EditRuleEvent.EnteredLongitude -> {
+                _state.value = _state.value.copy(
+                    locationTrigger = _state.value.locationTrigger!!.copy(
+                        longitude = event.value.toDouble()
+                    )
+                )
+            }
+            is EditRuleEvent.EnteredRadius -> {
+                _state.value = _state.value.copy(
+                    locationTrigger = _state.value.locationTrigger!!.copy(
+                        radius = event.value.toDouble()
+                    )
+                )
+            }
             is EditRuleEvent.AddTag -> {
                 val newTags = state.value.tags + Tag(title = event.value)
                 _state.value = _state.value.copy(
@@ -136,8 +218,13 @@ class EditRuleViewModel @Inject constructor(
             is EditRuleEvent.SaveRule -> {
                 viewModelScope.launch {
                     try {
+                        var trigger: TriggerObject? = null
+                        when (state.value.triggerObjectName) {
+                            "LocationTrigger" -> trigger = state.value.locationTrigger
+                            "CellTrigger" -> trigger = state.value.cellTrigger
+                        }
                         val ruleId = ruleUseCases.insertRule(
-                            trigger = state.value.trigger,
+                            trigger = trigger!!,
                             action = state.value.action,
                             title = state.value.title,
                             description = state.value.description,
