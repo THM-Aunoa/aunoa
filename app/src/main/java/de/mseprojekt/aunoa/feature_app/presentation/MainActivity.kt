@@ -239,6 +239,7 @@ class MainActivity : ComponentActivity(
                                         CoroutineScope(Dispatchers.Main).launch {
                                             if (stateUseCases.isFirstRun()) {
                                                 stateUseCases.insertState(true)
+                                                cellUseCases.insertRegion("Home", 1)
                                             }
                                             foregroundStartService("Start")
 

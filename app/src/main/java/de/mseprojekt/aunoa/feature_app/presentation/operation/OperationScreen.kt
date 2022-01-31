@@ -1,14 +1,11 @@
 package de.mseprojekt.aunoa.feature_app.presentation.operation
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.icons.Icons
@@ -86,7 +83,6 @@ fun OperationScreen(
         TopBarActionItem(
             "user",
             Icons.Filled.Person,
-            //{ openSheet(BottomSheetScreen.UserScreen) }),
             { openSheet(BottomSheetScreen.UserScreen) }),
     )
 
@@ -115,37 +111,52 @@ fun OperationScreen(
             scaffoldState = scaffoldState,
             topBar = { AunoaTopBar(actionItems) },
             content = {
-                //Column() {
-                LazyColumn(modifier = Modifier.fillMaxHeight()) {
-                    items(state.operations.asReversed()) { operation ->
-                        AunoaCard(
-                            navController = navController,
-                            title = operation.ruleWithTags.rule.title,
-                            subtitle = LocalDateTime.ofEpochSecond(
-                                operation.operation.date,
-                                0,
-                                ZoneOffset.UTC
-                            ).format(formatter),
-                            tags = operation.ruleWithTags.tags,
-                            actions = listOf(
-                                CardActionItem(
-                                    "Go to Rule",
-                                    { navController.navigate(Screen.RulesDetailsScreen.route + "?ruleId=${operation.ruleWithTags.rule.ruleId}") })
-                            ),
-                            onClickCard = { navController.navigate(Screen.RulesDetailsScreen.route + "?ruleId=${operation.ruleWithTags.rule.ruleId}") },
-                            onClickTag = {},
-                            viewModel = viewModel,
-                            topRight = {
-                                if (operation.operation.status is StatusType.Success) {
-                                    AunoaChip(label = "Success")
-                                } else {
-                                    AunoaChip(label = "Failed")
+
+                if (state.operations.isEmpty()) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Button(onClick = { openSheet(BottomSheetScreen.InfoScreen) }) {
+                            Text(text = "Show me some info")
+                        }
+                        Spacer(modifier = Modifier.height(40.dp))
+                        Button(onClick = { navController.navigate(Screen.EditRuleScreen.route) }) {
+                            Text(text = "Create first rule")
+                        }
+                    }
+                } else {
+                    LazyColumn(modifier = Modifier.fillMaxHeight()) {
+                        items(state.operations.asReversed()) { operation ->
+                            AunoaCard(
+                                navController = navController,
+                                title = operation.ruleWithTags.rule.title,
+                                subtitle = LocalDateTime.ofEpochSecond(
+                                    operation.operation.date,
+                                    0,
+                                    ZoneOffset.UTC
+                                ).format(formatter),
+                                tags = operation.ruleWithTags.tags,
+                                actions = listOf(
+                                    CardActionItem(
+                                        "Go to Rule",
+                                        { navController.navigate(Screen.RulesDetailsScreen.route + "?ruleId=${operation.ruleWithTags.rule.ruleId}") })
+                                ),
+                                onClickCard = { navController.navigate(Screen.RulesDetailsScreen.route + "?ruleId=${operation.ruleWithTags.rule.ruleId}") },
+                                onClickTag = {},
+                                viewModel = viewModel,
+                                topRight = {
+                                    if (operation.operation.status is StatusType.Success) {
+                                        AunoaChip(label = "Success")
+                                    } else {
+                                        AunoaChip(label = "Failed")
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
-                //}
             },
             bottomBar = { BottomNavigationBar(navController = navController) }
         )
