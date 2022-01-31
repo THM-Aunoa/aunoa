@@ -121,7 +121,7 @@ fun OperationScreen(
             topBar = { AunoaTopBar(actionItems) },
             content = {
                 //Column() {
-                LazyColumn() {
+                LazyColumn(modifier = Modifier.fillMaxHeight()) {
                     items(state.operations.asReversed()) { operation ->
                         AunoaCard(
                             navController = navController,

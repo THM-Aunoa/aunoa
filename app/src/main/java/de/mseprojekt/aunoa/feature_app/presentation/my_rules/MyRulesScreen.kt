@@ -8,20 +8,22 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import de.mseprojekt.aunoa.feature_app.presentation.rule_details.RuleDetailsViewModel
 import de.mseprojekt.aunoa.feature_app.presentation.rules_hub.RulesHubEvent
 import de.mseprojekt.aunoa.feature_app.presentation.util.Screen
 import de.mseprojekt.aunoa.feature_app.presentation.util.bottom_navigation_bar.BottomNavigationBar
 import de.mseprojekt.aunoa.feature_app.presentation.util.card.AunoaCard
 import de.mseprojekt.aunoa.feature_app.presentation.util.card.CardActionItem
+import de.mseprojekt.aunoa.feature_app.presentation.util.card.CardIconAction
 import de.mseprojekt.aunoa.feature_app.presentation.util.top_app_bar.AunoaTopBar
 import de.mseprojekt.aunoa.feature_app.presentation.util.top_app_bar.TopBarActionItem
+import kotlinx.coroutines.flow.collectLatest
 
 @ExperimentalMaterialApi
 @Composable
@@ -37,8 +39,25 @@ fun MyRulesScreen(
         TopBarActionItem(
             "search",
             Icons.Filled.Search,
-            { showSearch = !showSearch })
+            { showSearch = !showSearch }),
+        TopBarActionItem(
+            "filter",
+            Icons.Filled.Block,
+            { viewModel.onEvent(MyRulesEvent.ResetFilter) })
     )
+
+    LaunchedEffect(key1 = true) {
+        viewModel.eventFlow.collectLatest { event ->
+            when (event) {
+                is MyRulesViewModel.UiEvent.DeleteRule -> {
+                    scaffoldState.snackbarHostState.showSnackbar(
+                        message = event.message
+                    )
+                }
+            }
+        }
+    }
+
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = { AunoaTopBar(actionItems) },
@@ -57,18 +76,31 @@ fun MyRulesScreen(
                     )
                 }
 
-                Column(modifier = Modifier.verticalScroll(scrollState).padding(bottom = 75.dp)) {
+                Column(
+                    modifier = Modifier
+                        .verticalScroll(scrollState)
+                        .padding(bottom = 75.dp)
+                ) {
                     state.rules.forEach { rule ->
                         AunoaCard(
                             title = rule.rule.title,
                             content = rule.rule.description,
                             tags = rule.tags,
-                            actions = listOf(CardActionItem("Edit Rule", {navController.navigate(Screen.EditRuleScreen.route + "?ruleId=${rule.rule.ruleId}")})),
+                            actions = listOf(
+                                CardActionItem(
+                                    "Edit Rule",
+                                    { navController.navigate(Screen.EditRuleScreen.route + "?ruleId=${rule.rule.ruleId}") })
+                            ),
                             navController = navController,
                             viewModel = viewModel,
-                            onClickTag = { println("TAAAAG")},
-                            onClickCard = { navController.navigate(Screen.RulesDetailsScreen.route + "?ruleId=${rule.rule.ruleId}") }
+                            onClickTag = { tag -> viewModel.onEvent(MyRulesEvent.FilterRules(tag)) },
+                            onClickCard = { navController.navigate(Screen.RulesDetailsScreen.route + "?ruleId=${rule.rule.ruleId}") },
+                            iconAction = CardIconAction(
+                                Icons.Filled.Delete,
+                                { viewModel.onEvent(MyRulesEvent.DeleteRule(rule.rule.ruleId!!)) },
+                                "Delete Rule"
                             )
+                        )
                     }
                 }
             }

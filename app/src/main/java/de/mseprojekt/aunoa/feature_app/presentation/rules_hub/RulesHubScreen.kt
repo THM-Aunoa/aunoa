@@ -51,7 +51,7 @@ fun RulesHubScreen(
                     scaffoldState.snackbarHostState.showSnackbar(
                         message = event.message
                     )
-                    delay(300)
+                    delay(100)
                     navController.navigate(Screen.EditRuleScreen.route + "?ruleId=${event.ruleId}")
                 }
             }
