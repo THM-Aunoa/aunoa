@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Wash
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,7 +32,8 @@ fun AunoaCard(
     actions: List<CardActionItem> = emptyList(),
     tags: List<Tag> = emptyList(),
     onClickTag: (Tag) -> Unit,
-    onClickCard: () -> Unit = {}
+    onClickCard: () -> Unit = {},
+    topRight: (@Composable () -> Unit)? = null
 ) {
     Card(
         elevation = 12.dp,
@@ -47,6 +49,9 @@ fun AunoaCard(
                     if (subtitle != "") {
                         Text(subtitle, style = MaterialTheme.typography.h6)
                     }
+                }
+                if (topRight != null) {
+                    topRight()
                 }
                 if (iconAction != null) {
                     IconButton(

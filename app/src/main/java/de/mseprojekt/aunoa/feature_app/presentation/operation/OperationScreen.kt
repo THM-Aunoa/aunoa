@@ -22,10 +22,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import de.mseprojekt.aunoa.R
+import de.mseprojekt.aunoa.feature_app.domain.model.StatusType
 import de.mseprojekt.aunoa.feature_app.presentation.util.Screen
 import de.mseprojekt.aunoa.feature_app.presentation.util.bottom_navigation_bar.BottomNavigationBar
 import de.mseprojekt.aunoa.feature_app.presentation.util.card.AunoaCard
 import de.mseprojekt.aunoa.feature_app.presentation.util.card.CardActionItem
+import de.mseprojekt.aunoa.feature_app.presentation.util.chip.AunoaChip
 import de.mseprojekt.aunoa.feature_app.presentation.util.top_app_bar.AunoaTopBar
 import de.mseprojekt.aunoa.feature_app.presentation.util.top_app_bar.TopBarActionItem
 import kotlinx.coroutines.delay
@@ -129,7 +131,6 @@ fun OperationScreen(
                                 0,
                                 ZoneOffset.UTC
                             ).format(formatter),
-                            content = operation.operation.status.toString(),
                             tags = operation.ruleWithTags.tags,
                             actions = listOf(
                                 CardActionItem(
@@ -138,7 +139,14 @@ fun OperationScreen(
                             ),
                             onClickCard = { navController.navigate(Screen.RulesDetailsScreen.route + "?ruleId=${operation.ruleWithTags.rule.ruleId}") },
                             onClickTag = {},
-                            viewModel = viewModel
+                            viewModel = viewModel,
+                            topRight = {
+                                if (operation.operation.status is StatusType.Success) {
+                                    AunoaChip(label = "Success")
+                                } else {
+                                    AunoaChip(label = "Failed")
+                                }
+                            }
                         )
                     }
                 }
@@ -241,6 +249,8 @@ fun UserScreen(
         ) {
             Text("User settings", style = MaterialTheme.typography.h4)
             Spacer(modifier = Modifier.height(10.dp))
+            Text("Please tell us your name and your e-mail adress. We need that Information for the connection with your Spotify Account.")
+            Spacer(modifier = Modifier.height(10.dp))
             Column() {
                 Text("Username", style = MaterialTheme.typography.h6)
                 OutlinedTextField(
@@ -295,6 +305,8 @@ fun SettingsScreen(
         ) {
             Text("App settings", style = MaterialTheme.typography.h4)
             Spacer(modifier = Modifier.height(10.dp))
+            Text("Here you can control the app status. If you want the app not to run your rules, you can set the status to disabled.")
+            Spacer(modifier = Modifier.height(10.dp))
             Column() {
                 Text(
                     "App status",
@@ -323,19 +335,24 @@ fun SettingsScreen(
                     }
                 }
             }
+            Spacer(modifier = Modifier.height(10.dp))
+            Text("Here you can control the app status. If you want the app not to run your rules, you can set the status to disabled.")
+            Spacer(modifier = Modifier.height(10.dp))
             Column() {
                 Text("Regions", style = MaterialTheme.typography.h6)
                 Column() {
                     regions.forEach { region ->
-                        ListItem(text = { Text(text = region.name)}, trailing = {IconButton(
-                            onClick = { viewModel.onEvent(OperationEvent.DeleteRegion(region.regionId!!)) },
-                        ){
-                            Icon(
-                                Icons.Filled.Delete,
-                                contentDescription = "Delete Region",
-                                tint = Color.Red
-                            )
-                        }})
+                        ListItem(text = { Text(text = region.name) }, trailing = {
+                            IconButton(
+                                onClick = { viewModel.onEvent(OperationEvent.DeleteRegion(region.regionId!!)) },
+                            ) {
+                                Icon(
+                                    Icons.Filled.Delete,
+                                    contentDescription = "Delete Region",
+                                    tint = Color.Red
+                                )
+                            }
+                        })
                     }
                 }
                 Spacer(modifier = Modifier.height(5.dp))

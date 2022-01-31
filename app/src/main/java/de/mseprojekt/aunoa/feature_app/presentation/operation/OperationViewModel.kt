@@ -55,7 +55,6 @@ class OperationViewModel @Inject constructor(
                 _state.value = _state.value.copy(
                     regions = regions
                 )
-                println(regions);
             }
         }
     }

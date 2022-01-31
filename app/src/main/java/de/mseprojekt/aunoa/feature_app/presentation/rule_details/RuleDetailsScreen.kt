@@ -88,6 +88,7 @@ fun RuleDetailsScreen(
                 }
                 Column() {
                     Text("Tags", style = MaterialTheme.typography.h6)
+                    Spacer(modifier = Modifier.height(5.dp))
                     Row() {
                         state.tags.forEach { tag ->
                             AunoaChip(label = tag.title)
