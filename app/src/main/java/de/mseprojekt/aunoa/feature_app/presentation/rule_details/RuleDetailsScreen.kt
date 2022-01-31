@@ -195,7 +195,7 @@ fun RuleDetailsScreen(
                                             modifier = Modifier.fillMaxWidth()
                                         ) {
                                             Text(text = "Type", style = MaterialTheme.typography.h6)
-                                            Text(text = "Time trigger")
+                                            Text(text = "Location trigger")
                                         }
                                         Spacer(modifier = Modifier.height(5.dp))
                                         Row(
