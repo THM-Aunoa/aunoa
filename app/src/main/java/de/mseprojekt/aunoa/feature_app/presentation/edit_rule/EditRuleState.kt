@@ -16,11 +16,13 @@ data class EditRuleState(
     val title: String = "",
     val description: String = "",
     val priority: Int = 0,
-    val action: ActionObject = VolumeAction(
+    val action: ActionObject? = null,
+    val actionObjectName: String = "",
+    val volumeAction: ActionObject = VolumeAction(
         activateVolume = 0,
         deactivateVolume = 2
     ),
-    val actionObjectName: String = "VolumeAction",
+    val volumeActionMute: Boolean = true,
     val timeTrigger: TimeTrigger = TimeTrigger(
         startTime = 79200,
         endTime = 28800,

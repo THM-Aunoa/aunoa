@@ -18,6 +18,8 @@ import com.google.android.gms.tasks.Task
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.mseprojekt.aunoa.feature_app.domain.model.Tag
+import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.ActionObject
+import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.VolumeAction
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.CellTrigger
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.LocationTrigger
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TimeTrigger
@@ -90,6 +92,21 @@ class EditRuleViewModel @Inject constructor(
                     }
                     ruleUseCases.getRule(ruleId).also { rule ->
                         var trigger: TriggerObject? = null
+                        var action: ActionObject? = null
+                        when (rule!!.content.act.actionType) {
+                            "VolumeAction" -> {
+                                action =
+                                    Gson().fromJson(
+                                        rule.content.act.actionObject,
+                                        VolumeAction::class.java
+                                    )
+                                _state.value = _state.value.copy(
+                                    action = action,
+                                    volumeAction = action,
+                                    actionObjectName = "VolumeAction"
+                                )
+                            }
+                        }
                         when (rule!!.content.trig.triggerType) {
                             "CellTrigger" -> {
                                 trigger =
@@ -172,6 +189,11 @@ class EditRuleViewModel @Inject constructor(
             is EditRuleEvent.RemoveTrigger -> {
                 _state.value = _state.value.copy(
                     triggerObjectName = ""
+                )
+            }
+            is EditRuleEvent.RemoveAction -> {
+                _state.value = _state.value.copy(
+                    actionObjectName = ""
                 )
             }
             is EditRuleEvent.EnteredTitle -> {
@@ -271,7 +293,30 @@ class EditRuleViewModel @Inject constructor(
                     triggerObjectName = event.value
                 )
             }
-
+            is EditRuleEvent.ChoosedAction -> {
+                _state.value = _state.value.copy(
+                    actionObjectName = event.value
+                )
+            }
+            is EditRuleEvent.ToggleVolumeActionMute -> {
+                if (event.value) {
+                    _state.value = _state.value.copy(
+                        volumeActionMute = event.value,
+                        volumeAction = VolumeAction(
+                            activateVolume = 0,
+                            deactivateVolume = 2,
+                        )
+                    )
+                } else {
+                    _state.value = _state.value.copy(
+                        volumeActionMute = event.value,
+                        volumeAction = VolumeAction(
+                            activateVolume = 2,
+                            deactivateVolume = 0,
+                        )
+                    )
+                }
+            }
             is EditRuleEvent.FillCurrentLocationBoxes -> {
                 requestCurrentLocation().addOnCompleteListener { task: Task<Location> ->
                     if (task.isSuccessful && task.result != null) {
@@ -289,14 +334,18 @@ class EditRuleViewModel @Inject constructor(
                 viewModelScope.launch {
                     try {
                         var trigger: TriggerObject? = null
+                        var action: ActionObject? = null
                         when (state.value.triggerObjectName) {
                             "LocationTrigger" -> trigger = state.value.locationTrigger
                             "CellTrigger" -> trigger = state.value.cellTrigger
                             "TimeTrigger" -> trigger = state.value.timeTrigger
                         }
+                        when (state.value.actionObjectName) {
+                            "VolumeAction" -> action = state.value.volumeAction
+                        }
                         val ruleId = ruleUseCases.insertRule(
                             trigger = trigger!!,
-                            action = state.value.action,
+                            action = state.value.action!!,
                             title = state.value.title,
                             description = state.value.description,
                             priority = state.value.priority,

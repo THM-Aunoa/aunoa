@@ -39,9 +39,9 @@ fun EditRuleScreen(
     val scrollState = rememberScrollState()
     var openTagDialog = remember { mutableStateOf(false) }
     var openTriggerDialog by remember { mutableStateOf(false) }
+    var openActionDialog by remember { mutableStateOf(false) }
     var newTagText by remember { mutableStateOf("") }
 
-    var trigger by remember { mutableStateOf("") }
     val actionItems = listOf<TopBarActionItem>(
         /*TopBarActionItem("undo", Icons.Filled.Undo, {}),
         TopBarActionItem("redo", Icons.Filled.Redo, {}),*/
@@ -187,21 +187,28 @@ fun EditRuleScreen(
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text("Action", style = MaterialTheme.typography.h6)
                     Spacer(modifier = Modifier.height(10.dp))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(.8f)
-                            .align(Alignment.CenterHorizontally)
-                            .height(80.dp)
-                            .border(
-                                BorderStroke(2.dp, MaterialTheme.colors.primary),
-                                RoundedCornerShape(5)
-                            )
-                    ) {
-                        TextButton(
-                            onClick = { /*TODO*/ },
-                            modifier = Modifier.align(Alignment.Center)
-                        ) {
-                            Text("Add Action")
+                    when (state.actionObjectName) {
+                        "VolumeAction" -> {
+                            VolumeActionEdit()
+                        }
+                        "" -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(.8f)
+                                    .align(Alignment.CenterHorizontally)
+                                    .height(80.dp)
+                                    .border(
+                                        BorderStroke(2.dp, MaterialTheme.colors.primary),
+                                        RoundedCornerShape(5)
+                                    )
+                            ) {
+                                TextButton(
+                                    onClick = { openActionDialog = true },
+                                    modifier = Modifier.align(Alignment.Center)
+                                ) {
+                                    Text("Add Action")
+                                }
+                            }
                         }
                     }
                 }
@@ -214,7 +221,7 @@ fun EditRuleScreen(
     if (openTriggerDialog) {
         AlertDialog(
             onDismissRequest = {
-                openTagDialog.value = false
+                openTriggerDialog = false
             },
             title = {
                 Text(text = "Please choose a Trigger type", style = MaterialTheme.typography.h6)
@@ -251,6 +258,51 @@ fun EditRuleScreen(
                 TextButton(
                     onClick = {
                         openTriggerDialog = false
+                    }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    if (openActionDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                openActionDialog = false
+            },
+            title = {
+                Text(text = "Please choose an Action type", style = MaterialTheme.typography.h6)
+            },
+            text = {
+                val myData = listOf(
+                    Triple("VolumeAction", "Mute and unmute your phone", Icons.Filled.RingVolume)
+                )
+                LazyColumn {
+                    items(myData) { item ->
+                        ListItem(
+                            text = { Text(item.first) },
+                            secondaryText = { Text(item.second) },
+                            trailing = {
+                                Icon(
+                                    imageVector = item.third,
+                                    contentDescription = ""
+                                )
+                            },
+                            modifier = Modifier.clickable {
+                                viewModel.onEvent(
+                                    EditRuleEvent.ChoosedAction(item.first)
+                                )
+                                openActionDialog = false
+                            })
+
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        openActionDialog = false
                     }) {
                     Text("Cancel")
                 }
@@ -397,7 +449,15 @@ fun TimeTriggerEdit(
         Text(text = "Start")
         Spinner(
             label = "Weekday",
-            options = listOf("MONDAY", "TUESDAY", "WEDNESDAY"),
+            options = listOf(
+                "MONDAY",
+                "TUESDAY",
+                "WEDNESDAY",
+                "THURSDAY",
+                "FRIDAY",
+                "SATURDAY",
+                "SUNDAY"
+            ),
             selected = triggerState.startWeekday.toString(),
             callback = { value -> viewModel.onEvent(EditRuleEvent.EnteredStartDay(value)) })
         Spinner(
@@ -416,7 +476,15 @@ fun TimeTriggerEdit(
         Text(text = "End")
         Spinner(
             label = "Weekday",
-            options = listOf("MONDAY", "TUESDAY", "WEDNESDAY"),
+            options = listOf(
+                "MONDAY",
+                "TUESDAY",
+                "WEDNESDAY",
+                "THURSDAY",
+                "FRIDAY",
+                "SATURDAY",
+                "SUNDAY"
+            ),
             selected = triggerState.endWeekday.toString(),
             callback = { value -> viewModel.onEvent(EditRuleEvent.EnteredEndDay(value)) })
         Spinner(
@@ -483,18 +551,58 @@ fun CellTriggerEdit(
     }
 }
 
+@ExperimentalMaterialApi
 @Composable
-fun ShowTimePicker(context: Context, initHour: Int, initMinute: Int) {
-    val time = remember { mutableStateOf("") }
-    val timePickerDialog = TimePickerDialog(
-        context,
-        { _, hour: Int, minute: Int ->
-            time.value = "$hour:$minute"
-        }, initHour, initMinute, false
-    )
-    Button(onClick = {
-        timePickerDialog.show()
-    }) {
-        Text(text = "Open Time Picker")
+fun VolumeActionEdit(
+    viewModel: EditRuleViewModel = hiltViewModel()
+) {
+    val state = viewModel.state.value
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                BorderStroke(1.dp, Color.LightGray),
+                RoundedCornerShape(5)
+            )
+            .padding(horizontal = 20.dp)
+            .padding(bottom = 20.dp, top = 5.dp),
+        verticalArrangement = Arrangement.Center
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = "Volume Action", style = MaterialTheme.typography.h6)
+            IconButton(onClick = { viewModel.onEvent(EditRuleEvent.RemoveAction) }) {
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = "Remove Action",
+                    tint = Color.Gray,
+                )
+            }
+        }
+        Row() {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                RadioButton(
+                    selected = state.volumeActionMute,
+                    onClick = { viewModel.onEvent(EditRuleEvent.ToggleVolumeActionMute(true)) },
+                    colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colors.primary),
+                    modifier = Modifier.padding(end = 5.dp)
+                )
+                Text(text = "Mute")
+            }
+            Spacer(modifier = Modifier.width(10.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                RadioButton(
+                    selected = !state.volumeActionMute,
+                    onClick = { viewModel.onEvent(EditRuleEvent.ToggleVolumeActionMute(false)) },
+                    colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colors.primary),
+                    modifier = Modifier.padding(end = 5.dp)
+                )
+                Text(text = "Unmute")
+            }
+            Spacer(modifier = Modifier.height(5.dp))
+        }
     }
 }
