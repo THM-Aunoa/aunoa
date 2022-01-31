@@ -350,9 +350,17 @@ class EditRuleViewModel @Inject constructor(
                         when (state.value.actionObjectName) {
                             "VolumeAction" -> action = state.value.volumeAction
                         }
+                        if(trigger == null || action == null) {
+                            _eventFlow.emit(
+                                UiEvent.ShowSnackbar(
+                                    message = "You need to define trigger and action"
+                                )
+                            )
+                            return@launch
+                        }
                         val ruleId = ruleUseCases.insertRule(
-                            trigger = trigger!!,
-                            action = action!!,
+                            trigger = trigger,
+                            action = action,
                             title = state.value.title,
                             description = state.value.description,
                             priority = state.value.priority,
