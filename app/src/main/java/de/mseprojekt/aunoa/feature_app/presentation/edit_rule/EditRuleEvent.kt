@@ -8,4 +8,5 @@ sealed class EditRuleEvent {
     data class EnteredDescription(val value: String): EditRuleEvent()
     data class EnteredPriority(val value: Int): EditRuleEvent()
     data class ChoosedTrigger(val value: String): EditRuleEvent()
+    data class RemoveTag(val value: Int): EditRuleEvent()
 }

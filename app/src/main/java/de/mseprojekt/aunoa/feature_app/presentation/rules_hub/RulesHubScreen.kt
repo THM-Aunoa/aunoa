@@ -13,12 +13,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import de.mseprojekt.aunoa.feature_app.presentation.operation.OperationViewModel
 import de.mseprojekt.aunoa.feature_app.presentation.util.Screen
 import de.mseprojekt.aunoa.feature_app.presentation.util.bottom_navigation_bar.BottomNavigationBar
 import de.mseprojekt.aunoa.feature_app.presentation.util.card.AunoaCard
 import de.mseprojekt.aunoa.feature_app.presentation.util.card.CardActionItem
 import de.mseprojekt.aunoa.feature_app.presentation.util.top_app_bar.AunoaTopBar
 import de.mseprojekt.aunoa.feature_app.presentation.util.top_app_bar.TopBarActionItem
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 
 @ExperimentalMaterialApi
 @Composable
@@ -40,6 +43,21 @@ fun RulesHubScreen(
         "filter",
         Icons.Filled.Block,
         { viewModel.onEvent(RulesHubEvent.ResetFilter) }))
+
+    LaunchedEffect(key1 = true) {
+        viewModel.eventFlow.collectLatest { event ->
+            when (event) {
+                is RulesHubViewModel.UiEvent.AddRule -> {
+                    scaffoldState.snackbarHostState.showSnackbar(
+                        message = event.message
+                    )
+                    delay(300)
+                    navController.navigate(Screen.EditRuleScreen.route + "?ruleId=${event.ruleId}")
+                }
+            }
+        }
+    }
+
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = { AunoaTopBar(actionItems) },
@@ -68,7 +86,7 @@ fun RulesHubScreen(
                             content = rule.rule.description,
                             tags = rule.tags,
                             onClickTag = { tag -> viewModel.onEvent(RulesHubEvent.FilterRules(tag)) },
-                            actions = listOf(CardActionItem("Add Rule", {})),
+                            actions = listOf(CardActionItem("Add Rule", { viewModel.onEvent(RulesHubEvent.AddRule(rule))})),
                             //iconAction = CardIconAction(Icons.Filled.Add, {}, "Add Rule"),
                             navController = navController,
                             viewModel = viewModel

@@ -88,8 +88,10 @@ fun RuleDetailsScreen(
                 }
                 Column() {
                     Text("Tags", style = MaterialTheme.typography.h6)
-                    state.tags.forEach { tag ->
-                        AunoaChip(label = tag.title)
+                    Row() {
+                        state.tags.forEach { tag ->
+                            AunoaChip(label = tag.title)
+                        }
                     }
                 }
                 Column(modifier = Modifier.fillMaxWidth()) {

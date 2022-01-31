@@ -76,7 +76,11 @@ class RuleRepositoryImpl(
     }
 
     override fun insertTag(tag: Tag){
-        dao.insertTag(tag)
+        val callable = Callable{ dao.insertTag(tag) }
+
+        val future = Executors.newSingleThreadExecutor().submit(callable)
+
+        return future!!.get()
     }
 
     override fun insertTags(tags: List<Tag>) : List<Tag>{
@@ -111,7 +115,11 @@ class RuleRepositoryImpl(
     }*/
 
     override fun getTagByName(title : String): Tag{
-        return dao.getTagByName(title)
+        val callable = Callable{ dao.getTagByName(title) }
+
+        val future = Executors.newSingleThreadExecutor().submit(callable)
+
+        return future!!.get()
     }
 
     override fun getTagsWithoutFlow(): List<Tag>{

@@ -65,8 +65,6 @@ fun EditRuleScreen(
                     scaffoldState.snackbarHostState.showSnackbar(
                         message = event.message
                     )
-                    delay(300L)
-                    navController.navigateUp()
                 }
                 is EditRuleViewModel.UiEvent.DeleteRule -> {
                     scaffoldState.snackbarHostState.showSnackbar(
@@ -144,9 +142,13 @@ fun EditRuleScreen(
                         }
                     }
                     Row() {
-                        AunoaChip(label = "WIFI", icon = Icons.Outlined.Close)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        AunoaChip(label = "SOUND")
+                        state.tags.forEach { tag ->
+                            AunoaChip(
+                                label = tag.title,
+                                icon = Icons.Outlined.Close,
+                                onClick = { viewModel.onEvent(EditRuleEvent.RemoveTag(tag.tagId!!)) })
+                            Spacer(modifier = Modifier.width(4.dp))
+                        }
                     }
                 }
                 Column(modifier = Modifier.fillMaxWidth()) {

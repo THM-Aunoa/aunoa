@@ -5,22 +5,23 @@ import de.mseprojekt.aunoa.feature_app.domain.model.Act
 import de.mseprojekt.aunoa.feature_app.domain.model.Rule
 import de.mseprojekt.aunoa.feature_app.domain.model.Trig
 import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.ActionObject
+import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.SpotifyAction
+import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.VolumeAction
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TriggerObject
 import de.mseprojekt.aunoa.feature_app.domain.repository.RuleRepository
+import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.*
 
 class InsertRule(
     private val repository: RuleRepository
 ) {
     suspend operator fun invoke(
         action: ActionObject,
-        actionObjectName: String,
         trigger: TriggerObject,
-        triggerObjectName: String,
         title: String,
         description: String,
         priority: Int,
         id: Int? = -1
-    ) {
+    ) : Int {
         val maxId = repository.getMaxIdFromRules()
         val gson = Gson()
         var ruleId = id
@@ -41,6 +42,43 @@ class InsertRule(
                 enabled = true
             )
         )
+
+        val actionObjectName = when (action) {
+            is VolumeAction -> {
+                "VolumeAction"
+            }
+            is SpotifyAction ->{
+                "SpotifyAction"
+            }
+            else -> {
+                return -1
+            }
+        }
+
+        val triggerObjectName = when (trigger) {
+            is TimeTrigger -> {
+                "TimeTrigger"
+            }
+            is LocationTrigger -> {
+                "LocationTrigger"
+            }
+            is WifiTrigger -> {
+                "WifiTrigger"
+            }
+            is BluetoothTrigger -> {
+                "BluetoothTrigger"
+            }
+            is NfcTrigger -> {
+                "NfcTrigger"
+            }
+            is CellTrigger -> {
+                "CellTrigger"
+            }
+            else -> {
+                return -1
+            }
+        }
+
         val actionString = gson.toJson(action)
         repository.insertAction(
             Act(
@@ -57,5 +95,7 @@ class InsertRule(
                 triggerObject = triggerString
             )
         )
+
+        return ruleId!!
     }
 }

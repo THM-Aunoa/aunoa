@@ -55,7 +55,8 @@ class EditRuleViewModel @Inject constructor(
                             ruleId = ruleId,
                             title = rule.rule.title,
                             description = rule.rule.description,
-                            tags = tags.tags
+                            tags = tags.tags,
+                            priority = rule.rule.priority
                         )
                     }
                 }
@@ -112,7 +113,6 @@ class EditRuleViewModel @Inject constructor(
                 _state.value = _state.value.copy(
                     triggerObjectName = event.value
                 )
-                println(state.value.triggerObjectName)
             }
 
             is EditRuleEvent.FillCurrentLocationBoxes -> {
@@ -128,20 +128,21 @@ class EditRuleViewModel @Inject constructor(
                     }
                 }
             }
-
             is EditRuleEvent.SaveRule -> {
                 viewModelScope.launch {
                     try {
-                        ruleUseCases.insertRule(
+                        val ruleId = ruleUseCases.insertRule(
                             trigger = state.value.trigger,
                             action = state.value.action,
-                            triggerObjectName = "TimeTrigger",
-                            actionObjectName = "VolumeAction",
                             title = state.value.title,
                             description = state.value.description,
                             priority = state.value.priority,
                             id = state.value.ruleId
                         )
+                        val newTags = ruleUseCases.insertTags(state.value.tags)
+                        newTags.forEach { tag ->
+                            ruleUseCases.insertRuleTagCrossRef(ruleId, tag.tagId!!)
+                        }
                         _eventFlow.emit(UiEvent.SaveRule(message = "Successfully saved"))
                         println("successfully saved")
                         val intent = Intent(application, AunoaService::class.java)
@@ -156,7 +157,12 @@ class EditRuleViewModel @Inject constructor(
                         println(e)
                     }
                 }
-
+            }
+            is EditRuleEvent.RemoveTag -> {
+                val newTags = state.value.tags.filter { it.tagId != event.value }
+                _state.value = _state.value.copy(
+                    tags = newTags
+                )
             }
         }
     }
