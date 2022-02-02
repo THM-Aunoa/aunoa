@@ -28,11 +28,6 @@ import com.google.accompanist.permissions.PermissionsRequired
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
-import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.ActionObject
-import de.mseprojekt.aunoa.feature_app.domain.model.actionObjects.VolumeAction
-import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.CellTrigger
-import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TimeTrigger
-import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.TriggerObject
 import de.mseprojekt.aunoa.feature_app.domain.use_case.cell.CellUseCases
 import de.mseprojekt.aunoa.feature_app.domain.use_case.rule.RuleUseCases
 import de.mseprojekt.aunoa.feature_app.domain.use_case.state.StateUseCases
@@ -48,7 +43,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.time.DayOfWeek
 import javax.inject.Inject
 
 @ExperimentalMaterialApi
@@ -107,11 +101,11 @@ class MainActivity : ComponentActivity(
                             onDismissRequest = {
                             },
                             title = {
-                                Text(text = "Hallo Nutzer")
+                                Text(text = "Hello User")
                             },
                             text = {
                                 Text(
-                                    "wir wollen dir helfen dein Zusammenleben mit deinem Smartphone zu verbessern. Wir brauchen dafür Zugriff auf deinen Standort, damit wir deine Aktionen auch an den richtigen Orten ausführen können."
+                                    "We want to help you improve your life with your smartphone. We need access to your location so that we can perform your actions in the right places."
                                 )
                             },
                             confirmButton = {
@@ -128,9 +122,9 @@ class MainActivity : ComponentActivity(
                         Column(Modifier.padding(30.dp)) {
                             val context = LocalContext.current
                             Text(
-                                "Du hast uns leider nicht die benötigten Berechtigungen zur Abfrage deines Standorts erteilt." +
-                                        "Da wir dir die bestmögliche Erfahrung bieten können, musst du diese Berechtigungen erteilen. " +
-                                        "Du kannst dafür direkt über den Button in die Einstellungen wechseln und danach direkt zurück in die App wechseln."
+                                "Sorry, you have not given us the necessary permissions to query your location." +
+                                        "In order for us to provide you with the best possible experience, you must grant these permissions." +
+                                        "You can directly switch to the settings via the button and then directly back to the app."
                             )
                             Button(onClick = {
                                 val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
@@ -138,7 +132,7 @@ class MainActivity : ComponentActivity(
                                 intent.data = uri
                                 startActivity(intent)
                             }, Modifier.padding(top = 20.dp)) {
-                                Text("Einstellungen öffnen")
+                                Text("Open Settings")
                             }
                         }
                     },
@@ -166,11 +160,11 @@ class MainActivity : ComponentActivity(
                                     onDismissRequest = {
                                     },
                                     title = {
-                                        Text(text = "Hallo Nutzer")
+                                        Text(text = "Hello User")
                                     },
                                     text = {
                                         Text(
-                                            "wir wollen dir helfen dein Zusammenleben mit deinem Smartphone zu verbessern. Wir brauchen dafür Zugriff auf deinen Standort, damit wir deine Aktionen auch an den richtigen Orten ausführen können."
+                                            "We want to help you improve your life with your smartphone. We need access to your location also in the background so that we can perform your actions in the right places."
                                         )
                                     },
                                     confirmButton = {
@@ -192,9 +186,9 @@ class MainActivity : ComponentActivity(
                                 Column(Modifier.padding(30.dp)) {
                                     val context = LocalContext.current
                                     Text(
-                                        "Du hast uns leider nicht die benötigten Berechtigungen zur Abfrage deines Standorts erteilt." +
-                                                "Da wir dir die bestmögliche Erfahrung bieten können, musst du diese Berechtigungen erteilen. " +
-                                                "Du kannst dafür direkt über den Button in die Einstellungen wechseln und danach direkt zurück in die App wechseln."
+                                        "Sorry, you have not given us the necessary permissions to query your location." +
+                                                "In order for us to provide you with the best possible experience, you must grant these permissions." +
+                                                "You can directly switch to the settings via the button and then directly back to the app."
                                     )
                                     Button(onClick = {
                                         val intent =
@@ -203,7 +197,7 @@ class MainActivity : ComponentActivity(
                                         intent.data = uri
                                         startActivity(intent)
                                     }, Modifier.padding(top = 20.dp)) {
-                                        Text("Einstellungen öffnen")
+                                        Text("Open Settings")
                                     }
                                 }
                             },
@@ -215,11 +209,11 @@ class MainActivity : ComponentActivity(
                                             onDismissRequest = {
                                             },
                                             title = {
-                                                Text(text = "Hallo Nutzer")
+                                                Text(text = "Hello User")
                                             },
                                             text = {
                                                 Text(
-                                                    "wir wollen dir Helfen dein Zusammenleben mit deinem Smartphone zu verbessern. Du musst uns erlauben dein Smartphone stummzuschalten, damit wir dies für dich in Zukunft automatisch erledigen können."
+                                                    "We want to help you improve your life with your smartphone. You need to allow us to mute your smartphone so that we can do this for you automatically in the future."
                                                 )
                                             },
                                             confirmButton = {
@@ -239,7 +233,7 @@ class MainActivity : ComponentActivity(
                                         CoroutineScope(Dispatchers.Main).launch {
                                             if (stateUseCases.isFirstRun()) {
                                                 stateUseCases.insertState(true)
-                                                insertExamples()
+                                                cellUseCases.insertRegion("Home", 1)
                                             }
                                             foregroundStartService("Start")
 
@@ -305,145 +299,4 @@ class MainActivity : ComponentActivity(
             }
         }
     }
-
-    suspend fun insertExamples() {
-        cellUseCases.insertRegion("Home", 0)
-
-        val x1: TriggerObject = CellTrigger(
-            name = "Home"
-        )
-        val y1: ActionObject = VolumeAction(
-            activateVolume = 2,
-            deactivateVolume = 0
-        )
-        ruleUseCases.insertRule(
-            trigger = x1,
-            action = y1,
-            title = "Cell-Trigger",
-            description = "Zuhause Ton an",
-            priority = 9,
-        )
-
-        val x2 = TimeTrigger(
-            startTime = 79200,
-            endTime = 28800,
-            startWeekday = DayOfWeek.SUNDAY,
-            endWeekday = DayOfWeek.MONDAY,
-        )
-        val y2 = VolumeAction(
-            activateVolume = 0,
-            deactivateVolume = 2
-        )
-        ruleUseCases.insertRule(
-            trigger = x2,
-            action = y2,
-            title = "Time-Trigger",
-            description = "Sonntag Nachts auf lautlos",
-            priority = 10,
-        )
-        val x3 = TimeTrigger(
-            startTime = 79200,
-            endTime = 28800,
-            startWeekday = DayOfWeek.MONDAY,
-            endWeekday = DayOfWeek.TUESDAY,
-        )
-        val y3 = VolumeAction(
-            activateVolume = 0,
-            deactivateVolume = 2
-        )
-        ruleUseCases.insertRule(
-            trigger = x3,
-            action = y3,
-            title = "Time-Trigger",
-            description = "Montag Nachts auf lautlos",
-            priority = 10,
-        )
-        val x4 = TimeTrigger(
-            startTime = 79200,
-            endTime = 28800,
-            startWeekday = DayOfWeek.TUESDAY,
-            endWeekday = DayOfWeek.WEDNESDAY,
-        )
-        val y4 = VolumeAction(
-            activateVolume = 0,
-            deactivateVolume = 2
-        )
-        ruleUseCases.insertRule(
-            trigger = x4,
-            action = y4,
-            title = "Time-Trigger",
-            description = "Dienstag Nachts auf lautlos",
-            priority = 10,
-        )
-        val x5 = TimeTrigger(
-            startTime = 79200,
-            endTime = 28800,
-            startWeekday = DayOfWeek.WEDNESDAY,
-            endWeekday = DayOfWeek.THURSDAY,
-        )
-        val y5 = VolumeAction(
-            activateVolume = 0,
-            deactivateVolume = 2
-        )
-        ruleUseCases.insertRule(
-            trigger = x5,
-            action = y5,
-            title = "Time-Trigger",
-            description = "Mittwoch Nachts auf lautlos",
-            priority = 10,
-        )
-        val x6 = TimeTrigger(
-            startTime = 79200,
-            endTime = 28800,
-            startWeekday = DayOfWeek.THURSDAY,
-            endWeekday = DayOfWeek.FRIDAY,
-        )
-        val y6 = VolumeAction(
-            activateVolume = 0,
-            deactivateVolume = 2
-        )
-        ruleUseCases.insertRule(
-            trigger = x6,
-            action = y6,
-            title = "Time-Trigger",
-            description = "Donnerstag Nachts auf lautlos",
-            priority = 10,
-        )
-        val x7 = TimeTrigger(
-            startTime = 39000,
-            endTime = 32400,
-            startWeekday = DayOfWeek.FRIDAY,
-            endWeekday = DayOfWeek.SATURDAY,
-        )
-        val y7 = VolumeAction(
-            activateVolume = 0,
-            deactivateVolume = 2
-        )
-        ruleUseCases.insertRule(
-            trigger = x7,
-            action = y7,
-            title = "Time-Trigger",
-            description = "Freitag Nachts auf lautlos",
-            priority = 10,
-        )
-        val x8 = TimeTrigger(
-            startTime = 85800,
-            endTime = 32400,
-            startWeekday = DayOfWeek.SATURDAY,
-            endWeekday = DayOfWeek.SUNDAY,
-        )
-        val y8 = VolumeAction(
-            activateVolume = 0,
-            deactivateVolume = 2
-        )
-        ruleUseCases.insertRule(
-            trigger = x8,
-            action = y8,
-            title = "Time-Trigger",
-            description = "Samstag Nachts auf lautlos",
-            priority = 10,
-        )
-
-    }
-
 }

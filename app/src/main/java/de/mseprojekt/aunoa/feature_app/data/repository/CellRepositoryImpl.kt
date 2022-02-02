@@ -66,6 +66,9 @@ class CellRepositoryImpl (
     }
 
     override fun deleteRegion(id: Int) {
+        if(id == 1){
+            return
+        }
         val callable = Callable{ ruleDao.getRulesWithoutFlow() }
 
         val future = Executors.newSingleThreadExecutor().submit(callable)

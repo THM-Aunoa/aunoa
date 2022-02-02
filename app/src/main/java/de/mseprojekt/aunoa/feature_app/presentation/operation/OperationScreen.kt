@@ -1,15 +1,13 @@
 package de.mseprojekt.aunoa.feature_app.presentation.operation
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
+import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
@@ -47,28 +45,21 @@ fun OperationScreen(
     navController: NavController,
     viewModel: OperationViewModel = hiltViewModel(),
 ) {
+
     val scope = rememberCoroutineScope()
     val bottomScaffoldState = rememberBottomSheetScaffoldState()
     var currentBottomSheet: BottomSheetScreen? by remember {
         mutableStateOf(null)
     }
-
-    if (bottomScaffoldState.bottomSheetState.isCollapsed)
+    if (bottomScaffoldState.bottomSheetState.isCollapsed) {
         currentBottomSheet = null
-
-    // to set the current sheet to null when the bottom sheet closes
-    if (bottomScaffoldState.bottomSheetState.isCollapsed)
-        currentBottomSheet = null
-
-
+    }
     val closeSheet: () -> Unit = {
         scope.launch {
             bottomScaffoldState.bottomSheetState.collapse()
 
         }
     }
-
-
     val openSheet: (BottomSheetScreen) -> Unit = {
         scope.launch {
             currentBottomSheet = it
@@ -76,8 +67,6 @@ fun OperationScreen(
         }
 
     }
-
-
     val state = viewModel.state.value
     val scaffoldState = rememberScaffoldState()
     val scrollState = rememberScrollState()
@@ -123,37 +112,52 @@ fun OperationScreen(
             scaffoldState = scaffoldState,
             topBar = { AunoaTopBar(actionItems) },
             content = {
-                //Column() {
-                LazyColumn(modifier = Modifier.fillMaxHeight()) {
-                    items(state.operations.asReversed()) { operation ->
-                        AunoaCard(
-                            navController = navController,
-                            title = operation.ruleWithTags.rule.title,
-                            subtitle = LocalDateTime.ofEpochSecond(
-                                operation.operation.date,
-                                0,
-                                ZoneOffset.UTC
-                            ).format(formatter),
-                            tags = operation.ruleWithTags.tags,
-                            actions = listOf(
-                                CardActionItem(
-                                    "Go to Rule",
-                                    { navController.navigate(Screen.RulesDetailsScreen.route + "?ruleId=${operation.ruleWithTags.rule.ruleId}") })
-                            ),
-                            onClickCard = { navController.navigate(Screen.RulesDetailsScreen.route + "?ruleId=${operation.ruleWithTags.rule.ruleId}") },
-                            onClickTag = {},
-                            viewModel = viewModel,
-                            topRight = {
-                                if (operation.operation.status is StatusType.Success) {
-                                    AunoaChip(label = "Success")
-                                } else {
-                                    AunoaChip(label = "Failed")
+
+                if (state.operations.isEmpty()) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Button(onClick = { openSheet(BottomSheetScreen.InfoScreen) }) {
+                            Text(text = "Show me some info")
+                        }
+                        Spacer(modifier = Modifier.height(40.dp))
+                        Button(onClick = { navController.navigate(Screen.EditRuleScreen.route) }) {
+                            Text(text = "Create first rule")
+                        }
+                    }
+                } else {
+                    LazyColumn(modifier = Modifier.fillMaxHeight()) {
+                        items(state.operations.asReversed()) { operation ->
+                            AunoaCard(
+                                navController = navController,
+                                title = operation.ruleWithTags.rule.title,
+                                subtitle = LocalDateTime.ofEpochSecond(
+                                    operation.operation.date,
+                                    0,
+                                    ZoneOffset.UTC
+                                ).format(formatter),
+                                tags = operation.ruleWithTags.tags,
+                                actions = listOf(
+                                    CardActionItem(
+                                        "Go to Rule",
+                                        { navController.navigate(Screen.RulesDetailsScreen.route + "?ruleId=${operation.ruleWithTags.rule.ruleId}") })
+                                ),
+                                onClickCard = { navController.navigate(Screen.RulesDetailsScreen.route + "?ruleId=${operation.ruleWithTags.rule.ruleId}") },
+                                onClickTag = {},
+                                viewModel = viewModel,
+                                topRight = {
+                                    if (operation.operation.status is StatusType.Success) {
+                                        AunoaChip(label = "Success")
+                                    } else {
+                                        AunoaChip(label = "Failed")
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
-                //}
             },
             bottomBar = { BottomNavigationBar(navController = navController) }
         )
@@ -205,12 +209,13 @@ sealed class BottomSheetScreen() {
 
 @Composable
 fun InfoScreen() {
+    val scrollState = rememberScrollState()
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White, shape = RectangleShape)
+            .background(colors.background, shape = RectangleShape)
     ) {
-        Column(modifier = Modifier.padding(all = 15.dp)) {
+        Column(modifier = Modifier.padding(all = 15.dp).verticalScroll(scrollState) ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -228,6 +233,29 @@ fun InfoScreen() {
                 text = "Aunoa supports you in your daily routine. To do this, you can set rules that automatically change states on your smartphone. There are actions and triggers for this. Just try it!",
                 style = MaterialTheme.typography.body1
             )
+            Spacer(modifier = Modifier.height(25.dp))
+            Text(text = "But maybe these few words will help you to use the app for the first time:")
+            Text(
+                text = "You can create new rules that can then automate device settings. " +
+                        "A rule always has an action and a trigger. " +
+                        "In the Rules Hub there are some examples that you can directly apply and then edit. " +
+                        "A trigger is a value at which the app executes a rule. " +
+                        "This value can currently be a time, a location or a radio mast. " +
+                        "Currently, only the volume of the smartphone can be turned on and off as an action ",
+                style = MaterialTheme.typography.body1
+            )
+            Spacer(modifier = Modifier.height(25.dp))
+            Text(
+                text = "Other planned features:\n" +
+                        "- Wifi Trigger\n" +
+                        "- Bluetooth Trigger\n" +
+                        "- NFC Trigger\n" +
+                        "- Spotify Action\n" +
+                        "- Detailed overview of the latest radio masts",
+                style = MaterialTheme.typography.body1
+            )
+            Spacer(modifier = Modifier.height(25.dp))
+            Text(text = "Version 1.0.0")
         }
     }
 }
@@ -243,7 +271,7 @@ fun UserScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White, shape = RectangleShape)
+            .background(colors.background, shape = RectangleShape)
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier
@@ -306,7 +334,7 @@ fun SettingsScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White, shape = RectangleShape)
+            .background(colors.background, shape = RectangleShape)
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier
@@ -347,7 +375,7 @@ fun SettingsScreen(
                 }
             }
             Spacer(modifier = Modifier.height(10.dp))
-            Text("Here you can control the app status. If you want the app not to run your rules, you can set the status to disabled.")
+            Text("Here you have the overview of your regions that you can use in your cell trigger. You can add new regions for new rules or delete old regions. But be careful: If you delete a region, you also remove the rules that are linked to this region!")
             Spacer(modifier = Modifier.height(10.dp))
             Column() {
                 Text("Regions", style = MaterialTheme.typography.h6)
@@ -368,12 +396,12 @@ fun SettingsScreen(
                                         regionTime = time.toString()
                                         regionId = region.regionId!!
                                         openRegionDialog.value = true
-                                    },
-                                ) {
-                                    Icon(
+
+                                },
+                                    ) {Icon(
                                         Icons.Filled.Edit,
                                         contentDescription = "Edit Region",
-                                        tint = Color.Black
+                                        tint = Color.Gray
                                     )
                                 }
                                 IconButton(

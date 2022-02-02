@@ -7,20 +7,19 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import de.mseprojekt.aunoa.feature_app.presentation.operation.OperationViewModel
 import de.mseprojekt.aunoa.feature_app.presentation.util.Screen
 import de.mseprojekt.aunoa.feature_app.presentation.util.bottom_navigation_bar.BottomNavigationBar
 import de.mseprojekt.aunoa.feature_app.presentation.util.card.AunoaCard
 import de.mseprojekt.aunoa.feature_app.presentation.util.card.CardActionItem
 import de.mseprojekt.aunoa.feature_app.presentation.util.top_app_bar.AunoaTopBar
 import de.mseprojekt.aunoa.feature_app.presentation.util.top_app_bar.TopBarActionItem
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 
 @ExperimentalMaterialApi
@@ -51,7 +50,6 @@ fun RulesHubScreen(
                     scaffoldState.snackbarHostState.showSnackbar(
                         message = event.message
                     )
-                    delay(100)
                     navController.navigate(Screen.EditRuleScreen.route + "?ruleId=${event.ruleId}")
                 }
             }

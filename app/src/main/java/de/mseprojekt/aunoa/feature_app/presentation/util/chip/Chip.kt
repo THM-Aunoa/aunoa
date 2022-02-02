@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,7 +18,7 @@ import androidx.compose.ui.unit.sp
 
 @ExperimentalMaterialApi
 @Composable
-fun AunoaChip(label: String, icon: ImageVector? = null, onClick: () -> Unit = { println("CHIPCLICKTEST")}) {
+fun AunoaChip(label: String, icon: ImageVector? = null, onClick: () -> Unit = {}) {
     Box() {
         Surface(
             elevation = 1.dp,
@@ -29,12 +30,14 @@ fun AunoaChip(label: String, icon: ImageVector? = null, onClick: () -> Unit = { 
                 Text(
                     label,
                     modifier = Modifier.padding(vertical = 4.dp, horizontal = 6.dp),
-                    fontSize = 12.sp
+                    fontSize = 12.sp,
+                    color = Color.DarkGray
                     //style = MaterialTheme.typography.button.copy(color = Color.DarkGray)
                 )
                 if (icon != null) Icon(
                     icon,
                     "",
+                    tint = Color.DarkGray,
                     modifier = Modifier
                         .scale(.8f)
                 )

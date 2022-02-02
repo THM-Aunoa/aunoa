@@ -30,7 +30,7 @@ fun AunoaTopBar(actionItems: List<TopBarActionItem>) {
         Row(
             modifier = Modifier
                 .height(80.dp)
-                .background(Color.White)
+                .background(colors.background)
                 .fillMaxWidth(1f)
         ) {
             Box(
@@ -45,7 +45,7 @@ fun AunoaTopBar(actionItems: List<TopBarActionItem>) {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxSize(1f)
-                    .background(Color.White)
+                    .background(colors.background)
                     .padding(end = 10.dp)
             ) {
                 for (actionItem in actionItems) {
