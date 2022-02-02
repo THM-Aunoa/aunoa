@@ -253,7 +253,7 @@ fun InfoScreen() {
                         "- Wifi Trigger\n" +
                         "- Bluetooth Trigger\n" +
                         "- NFC Trigger\n" +
-                        "- Spotify Action"
+                        "- Spotify Action",
                 style = MaterialTheme.typography.body1
             )
             Spacer(modifier = Modifier.height(25.dp))
