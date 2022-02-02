@@ -131,7 +131,8 @@ object AppModule {
             editRegion = EditRegion(repository),
             getLastCells = GetLastCells(repository),
             insertLastCell = InsertLastCell(repository),
-            getRegionIdForCellId = GetRegionIdForCellId(repository)
+            getRegionIdForCellId = GetRegionIdForCellId(repository),
+            getAllCells = GetAllCells(repository)
         )
     }
     @Provides

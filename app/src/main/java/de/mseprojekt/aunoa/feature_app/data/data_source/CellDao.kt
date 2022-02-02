@@ -4,7 +4,6 @@ import androidx.room.*
 import de.mseprojekt.aunoa.feature_app.domain.model.Cell
 import de.mseprojekt.aunoa.feature_app.domain.model.LastCells
 import de.mseprojekt.aunoa.feature_app.domain.model.Region
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CellDao {
@@ -43,11 +42,17 @@ interface CellDao {
     fun getRegionNameById(id: Int) : String?
 
     @Query("SELECT * FROM lastcells")
-    fun getLastCells(): Flow<List<LastCells>>
+    fun getLastCells(): List<LastCells>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertLastCell(last: LastCells)
 
     @Query("SELECT regionId FROM cell where cellId = :cellId")
     fun getRegionIdForCellId(cellId: Long): Int?
+
+    @Query("SELECT * FROM cell")
+    fun getAllCells(): List<Cell>
+
+    @Query("DELETE from lastcells WHERE date < :date")
+    fun deleteLastCells(date: Long)
 }

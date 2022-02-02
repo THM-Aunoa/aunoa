@@ -45,11 +45,9 @@ class OperationViewModel @Inject constructor(
     val eventFlow = _eventFlow.asSharedFlow()
 
     private var getOperationsJob: Job? = null
-    private var getLastCellsJob: Job? = null
 
     init {
         getOperations()
-        getLastCells()
         viewModelScope.launch {
             userUseCases.getUser().also { user ->
                 if (user != null) {
@@ -64,11 +62,7 @@ class OperationViewModel @Inject constructor(
                     appState = appState
                 )
             }
-            cellUseCases.getRegions().also { regions ->
-                _state.value = _state.value.copy(
-                    regions = regions
-                )
-            }
+            updateRegionAndCellList()
         }
     }
 
@@ -108,11 +102,8 @@ class OperationViewModel @Inject constructor(
             is OperationEvent.DeleteRegion -> {
                 viewModelScope.launch {
                     cellUseCases.removeRegion(event.value)
-                    cellUseCases.getRegions().also { regions ->
-                        _state.value = _state.value.copy(
-                            regions = regions
-                        )
-                    }
+                    updateRegionAndCellList()
+                    updateServiceRegionList()
                 }
             }
             is OperationEvent.AddRegion -> {
@@ -120,11 +111,7 @@ class OperationViewModel @Inject constructor(
                     val time = LocalDateTime.now().plusMinutes(event.minutes).toEpochSecond(
                         ZoneOffset.UTC).toString()
                     cellUseCases.insertRegion(event.value, time.toLong(), event.minutes)
-                    cellUseCases.getRegions().also { regions ->
-                        _state.value = _state.value.copy(
-                            regions = regions
-                        )
-                    }
+                    updateRegionAndCellList()
                     val intent2 = Intent(application, AunoaService::class.java)
                     intent2.putExtra(INTENT_COMMAND, "Scan")
                     intent2.putExtra(INTENT_SCAN_UNTIL, time)
@@ -137,11 +124,7 @@ class OperationViewModel @Inject constructor(
                     val time = LocalDateTime.now().plusMinutes(event.minutes).toEpochSecond(
                         ZoneOffset.UTC).toString()
                     cellUseCases.editRegion(event.id,event.value, time.toLong(), event.minutes)
-                    cellUseCases.getRegions().also { regions ->
-                        _state.value = _state.value.copy(
-                            regions = regions
-                        )
-                    }
+                    updateRegionAndCellList()
                     val intent2 = Intent(application, AunoaService::class.java)
                     intent2.putExtra(INTENT_COMMAND, "Scan")
                     intent2.putExtra(INTENT_SCAN_UNTIL, time)
@@ -152,10 +135,41 @@ class OperationViewModel @Inject constructor(
             is OperationEvent.RemoveCell -> {
                 viewModelScope.launch {
                     cellUseCases.removeCell(event.id)
+                    updateRegionAndCellList()
+                    updateServiceRegionList()
+                }
+
+            }
+            is OperationEvent.UpdateCell -> {
+                viewModelScope.launch {
+                    event.regionId?.let {
+                        cellUseCases.insertCell(it, event.cellId)
+                        updateRegionAndCellList()
+                        updateServiceRegionList()
+                    }
                 }
 
             }
         }
+    }
+
+    private fun updateRegionAndCellList(){
+        cellUseCases.getRegions().also { regions ->
+            _state.value = _state.value.copy(
+                regions = regions
+            )
+        }
+        cellUseCases.getLastCells().also { cell ->
+            _state.value = _state.value.copy(
+                cells = cell
+            )
+        }
+    }
+
+    private fun updateServiceRegionList(){
+        val intent = Intent(application, AunoaService::class.java)
+        intent.putExtra(INTENT_COMMAND, "Update")
+        application.startForegroundService(intent)
     }
 
     private fun getOperations() {
@@ -169,19 +183,7 @@ class OperationViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
-    private fun getLastCells() {
-        getLastCellsJob?.cancel()
-        getLastCellsJob = cellUseCases.getLastCells()
-            .onEach { cells ->
-                _state.value = state.value.copy(
-                    cells = cells
-                )
-            }
-            .launchIn(viewModelScope)
-    }
-
     sealed class UiEvent {
         data class SaveUser(val message: String) : UiEvent()
-        data class ReturnRegionId(val id: Int) : UiEvent()
     }
 }

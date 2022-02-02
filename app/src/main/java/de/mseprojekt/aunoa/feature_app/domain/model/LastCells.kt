@@ -8,8 +8,6 @@ data class LastCells(
     @PrimaryKey
     val cellId: Long,
 
-    val regionId: Int? = null,
-
     val date: Long,
 
 )

@@ -11,5 +11,6 @@ data class CellUseCases(
     val editRegion: EditRegion,
     val getLastCells: GetLastCells,
     val insertLastCell: InsertLastCell,
-    val getRegionIdForCellId: GetRegionIdForCellId
+    val getRegionIdForCellId: GetRegionIdForCellId,
+    val getAllCells: GetAllCells
 )

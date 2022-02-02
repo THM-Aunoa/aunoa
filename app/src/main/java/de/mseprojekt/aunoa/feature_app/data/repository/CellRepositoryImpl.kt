@@ -8,7 +8,6 @@ import de.mseprojekt.aunoa.feature_app.domain.model.LastCells
 import de.mseprojekt.aunoa.feature_app.domain.model.Region
 import de.mseprojekt.aunoa.feature_app.domain.model.triggerObjects.CellTrigger
 import de.mseprojekt.aunoa.feature_app.domain.repository.CellRepository
-import kotlinx.coroutines.flow.Flow
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.concurrent.Callable
@@ -61,8 +60,12 @@ class CellRepositoryImpl (
         }
     }
 
-    override fun getLastCells(): Flow<List<LastCells>> {
-        return cellDao.getLastCells()
+    override fun getLastCells(): List<LastCells> {
+        val callable = Callable{ cellDao.getLastCells() }
+
+        val future = Executors.newSingleThreadExecutor().submit(callable)
+
+        return future!!.get()
     }
 
     override fun deleteRegion(id: Int) {
@@ -128,6 +131,22 @@ class CellRepositoryImpl (
 
     override fun getRegionIdForCellId(cellId: Long): Int?{
         val callable = Callable{ cellDao.getRegionIdForCellId(cellId) }
+
+        val future = Executors.newSingleThreadExecutor().submit(callable)
+
+        return future!!.get()
+    }
+
+    override fun getAllCells(): List<Cell>{
+        val callable = Callable{ cellDao.getAllCells() }
+
+        val future = Executors.newSingleThreadExecutor().submit(callable)
+
+        return future!!.get()
+    }
+
+    override fun deleteLastCells(date: Long){
+        val callable = Callable{ cellDao.deleteLastCells(date) }
 
         val future = Executors.newSingleThreadExecutor().submit(callable)
 

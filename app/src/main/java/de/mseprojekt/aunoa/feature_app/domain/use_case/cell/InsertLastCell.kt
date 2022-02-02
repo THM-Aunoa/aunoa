@@ -8,8 +8,8 @@ import java.time.ZoneOffset
 class InsertLastCell(
     private val repository: CellRepository
 ) {
-    operator fun invoke(cellId: Long, regionId: Int?) {
+    operator fun invoke(cellId: Long) {
         return repository.insertLastCell(LastCells(cellId = cellId, date= LocalDateTime.now().toEpochSecond(
-            ZoneOffset.UTC), regionId = regionId))
+            ZoneOffset.UTC)))
     }
 }

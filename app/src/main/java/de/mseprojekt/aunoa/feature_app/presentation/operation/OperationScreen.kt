@@ -1,11 +1,14 @@
 package de.mseprojekt.aunoa.feature_app.presentation.operation
 
-import androidx.compose.foundation.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.icons.Icons
@@ -327,8 +330,9 @@ fun SettingsScreen(
     var cells = viewModel.state.value.cells
     var regionName by remember { mutableStateOf(" ") }
     var selectedRegionName by remember { mutableStateOf("") }
+    var prevSelectedRegionName by remember { mutableStateOf("") }
     var regionTime by remember { mutableStateOf("10") }
-    var cellId by remember { mutableStateOf("") }
+    var cellId by remember { mutableStateOf(0.toLong()) }
     var regionId by remember { mutableStateOf(-1) }
 
     Box(
@@ -427,6 +431,9 @@ fun SettingsScreen(
                     Text(text = "Add region")
                 }
             }
+            Spacer(modifier = Modifier.height(10.dp))
+            Text("In the following table you can see an overview about your last connected radio masts. You can manually add them to a region or remove them from a region.")
+            Spacer(modifier = Modifier.height(10.dp))
             Column() {
                 Text("Cells", style = MaterialTheme.typography.h6)
                 Column() {
@@ -466,16 +473,18 @@ fun SettingsScreen(
                             Row() {
                                 IconButton(
                                     onClick = {
-                                        cellId = cell.cellId.toString()
+                                        cellId = cell.cellId
                                         if (cell.regionId != null) {
                                             for (region in regions) {
                                                 if (region.regionId == cell.regionId) {
                                                     selectedRegionName = region.name
+                                                    prevSelectedRegionName = region.name
                                                     break
                                                 }
                                             }
                                         } else {
                                             selectedRegionName = "None"
+                                            prevSelectedRegionName = "None"
                                         }
                                         openCellDialog.value = true
                                     },
@@ -483,7 +492,7 @@ fun SettingsScreen(
                                     Icon(
                                         Icons.Filled.Edit,
                                         contentDescription = "Edit Cell",
-                                        tint = Color.Black
+                                        tint = Color.Gray
                                     )
                                 }
                             }
@@ -507,23 +516,41 @@ fun SettingsScreen(
                 Column() {
                     Text(text = "Cell Id:")
                     TextField(
-                        value = cellId,
-                        onValueChange = { cellId = it },
+                        value = cellId.toString(),
+                        onValueChange = { cellId = it.toLong() },
                         enabled = false
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
-                    Text(text = "Please chose a Region Region:")
+                    Text(text = "Please chose a Region for this Cell Id:")
                     Spinner(
                         label = "Region",
                         options = regions.map { it.name } + "None" ,
                         selected = selectedRegionName,
-                        callback = { })
+                        callback = { value -> selectedRegionName = value},
+                        padding = 0
+                    )
                 }
             },
             confirmButton = {
                 Button(
                     onClick = {
+                        if(selectedRegionName != prevSelectedRegionName){
+                            if(selectedRegionName == "None"){
+                                viewModel.onEvent(
+                                    OperationEvent.RemoveCell(
+                                        cellId
+                                    )
+                                )
+                            }else{
+                                viewModel.onEvent(
+                                    OperationEvent.UpdateCell(
+                                        regionId = regions[regions.map { it.name }.indexOf(selectedRegionName)].regionId,
+                                        cellId = cellId
+                                    )
+                                )
+                            }
+                        }
                         openCellDialog.value = false
                     }) {
                     Text("Edit Cell")

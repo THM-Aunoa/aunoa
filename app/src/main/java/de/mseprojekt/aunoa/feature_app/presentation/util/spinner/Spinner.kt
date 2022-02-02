@@ -10,11 +10,10 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun Spinner(label: String, options: List<String>, selected: String, callback: (String) -> Unit) {
+fun Spinner(label: String, options: List<String>, selected: String, callback: (String) -> Unit, padding: Int = 10) {
     var expanded by remember { mutableStateOf(false) }
     var selectedText by remember { mutableStateOf(selected) }
 
@@ -30,7 +29,7 @@ fun Spinner(label: String, options: List<String>, selected: String, callback: (S
             onValueChange = { selectedText = it },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(10.dp)
+                .padding(padding.dp)
                 .clickable { expanded = !expanded },
             label = { Text(label) },
             trailingIcon = {

@@ -677,8 +677,7 @@ class AunoaService: Service() {
             val cellId = getCellId(manager)
             if(cellId!=null) {
                 if(cellId != currentCellId){
-                    val regionId = cellUseCases.getRegionIdForCellId(cellId)
-                    cellUseCases.insertLastCell(cellId, regionId)
+                    cellUseCases.insertLastCell(cellId)
                 }
                 currentCellId = getCellId(manager)
             }
