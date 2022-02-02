@@ -253,12 +253,11 @@ fun InfoScreen() {
                         "- Wifi Trigger\n" +
                         "- Bluetooth Trigger\n" +
                         "- NFC Trigger\n" +
-                        "- Spotify Action\n" +
-                        "- Detailed overview of the latest radio masts",
+                        "- Spotify Action"
                 style = MaterialTheme.typography.body1
             )
             Spacer(modifier = Modifier.height(25.dp))
-            Text(text = "Version 1.0.0")
+            Text(text = "Version 1.0.1")
         }
     }
 }
